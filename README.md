@@ -48,6 +48,8 @@ The possible parameters for this command are:
 * 'no-magic' or 'show-magic'
 * 'no-coins'
 
+Note: In keeping with the DMG guidelines, Gems, Art, and Magic Items are *only* available as Horde items. Passing `--mod:show-gems` with the `--type:Indiv1` command will still not generate Gems. Coins are the bare minimum for any loot, so there is no default for preventing Coins from being generated. However, the option to skip them for special circumstances is provided.
+
 #### Examples
 ```
 !loot --show --type:Horde3
@@ -55,8 +57,6 @@ The possible parameters for this command are:
 !loot --show --loc:Dragon's Lair --type:Horde4
 !loot --show --type:Indiv2 --recip:Pip the Pickpocket --incl:Love Letter to Bryon
 ```
-
-Note: In keeping with the DMG guidelines, Gems, Art, and Magic Items are *only* available as Horde items. Passing `--mod:show-gems` with the `--type:Indiv1` command will still not generate Gems. Coins are the bare minimum for any loot, so there is no default for preventing Coins from being generated. However, the option to skip them for special circumstances is provided.
 
 ## --config
 Gems, Art and Mundane item generation can all be controlled through commands. However, you may want to set default values for whether these items are generated to avoid always having to pass values through the [`--mod`](#--show) command. This is done through the Config Menu.
