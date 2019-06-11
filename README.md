@@ -48,8 +48,9 @@ The possible parameters for this command are:
 * 'no-magic' or 'show-magic'
 * 'no-coins'
 
+#### Examples
 ```
-!loot --show --type:Indiv1
+!loot --show --type:Horde3
 !loot --show --type:Indiv1 --mod:no-gems,no-art
 !loot --show --loc:Dragon's Lair --type:Horde4
 !loot --show --type:Indiv2 --mod:no-art --incl:Love Letter to Bryon
