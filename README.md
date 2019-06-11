@@ -68,18 +68,18 @@ Displays help for formatting the [--show](#--show) command and a link to display
 ```!loot --help```
 
 ## --export
-To provide customization options for Magic Items and Spells, export and [import](#--import) options are provided. The easiest way to make changes to the default database is to first export the data into handouts. This will give you the proper format for your additional items and provides handouts with the proper titles that the import function will look for.
-
-Note: If you wish to reset the database to start another campaign, you can skip the [`--setup` command](#--setup) and simply import from these tables.
+To provide customization options for Magic Items, Mundane Items, and Spells, export and [import](#--import) options are provided. The easiest way to make changes to the default database is to first export the data into handouts. This will give you the proper format for your additional items and provides handouts with the proper titles that the import function will look for.
 
 ```!loot --export```
 
+Note: If you wish to reset the database to start another campaign, you can skip the [`--setup` command](#--setup) and simply import data from these tables.
+
 ## --import
-Importing gives you the ability to customize your Magic Items and Spells lists. The preferred method is to [export](#--export) all of the necessary tables and edit them to your liking. Leaving any original items in the table and adding your own will help you balance distribution of items.
+Importing gives you the ability to customize your Magic Items, Mundane Items, and Spells lists. The preferred method is to [export](#--export) all of the necessary tables and edit them to your liking. Leaving any original items in the table and adding your own will help you balance distribution of items.
 
 There are 2 parameters that must be included in the import command: `--action` and `--tables`: The first specifies whether the Items to be imported "overwrite" the data or merely "append" the new Items to the old data. Because there is no way to accurately prevent duplicates, it is highly recommended to use the overwrite action with an exported table to which new Items have been added. In any case, the parameter to use is either `--action:overwrite` or `--action:append`.
 
-The `--tables` parameter is a comma delimited list of Magic Item tables and/or Spells that you wish to make changes to. The options are *Table A, Table B, Table C, Table D, Table E, Table F, Table G, Table H, Table I, Mundane*, and *Spells*. If you wish to only modify the Spells, send
+The `--tables` parameter is a comma delimited list of Item tables and/or Spells that you wish to make changes to. The options are *Table A, Table B, Table C, Table D, Table E, Table F, Table G, Table H, Table I, Mundane*, and *Spells*. If you wish to only modify the Spells, send
 
 ```!loot --import --action:overwrite --tables:Spells```
 
@@ -98,7 +98,13 @@ The Magic & Mundane Items tables use a replacement syntax that allows randomizat
 * **%%monsterTypes%%** will return a random monster type, such as Beast, Dragon, or Giant.
 * **%%swords%%** will return either Shortsword, Longsword, or Greatsword for magic swords.
 * **%%ammo%%** will return Arrow, Crossbow Bolt, Sling Bullet, or Blowgun Needle. Note that these are singular, so that any time you wish to produce multiples you will need an s after.
-The custom Item "1|%%swords%% of Yawning" may give *Longsword of Yawning*. The Item "1|Potion of %%damageTypes%% Breath" could yield a *Potion of Thunder Breath*, while "Homing %%ammo%%s (@1d4+1@)" can produce *Homing Crossbow Bolts (3)*.
+
+Examples:
+| Database Entry| Generated Loot|
+| ------------- |-------------|
+| *%%swords%%* of Yawning |Longsword of Yawning|
+|Potion of *%%damageTypes%%* Breath|Potion of Thunder Breath|
+|Homing *%%ammo%%*s (*@1d4+1@*)|Homing Crossbow Bolts (3)|
 
 *Be careful when editing exported handouts! Leaving out a replacement variable character, or using one in an Item description without actually using it as a replacement variable, can break the script.*
 
