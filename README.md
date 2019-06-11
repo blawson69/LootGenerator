@@ -100,7 +100,7 @@ The Magic & Mundane Items tables use a replacement syntax that allows randomizat
 * **%%ammo%%** will return Arrow, Crossbow Bolt, Sling Bullet, or Blowgun Needle. Note that these are singular, so that any time you wish to produce multiples you will need an s after.
 The custom Item "1|%%swords%% of Yawning" may give *Longsword of Yawning*. The Item "1|Potion of %%damageTypes%% Breath" could yield a *Potion of Thunder Breath*, while "Homing %%ammo%%s (@1d4+1@)" can produce *Homing Crossbow Bolts (3)*.
 
-*Be careful when editing exported handouts! Leaving out a replacement character or using one in an Item description without actually using it as a replacement variable can break the script.*
+*Be careful when editing exported handouts! Leaving out a replacement variable character, or using one in an Item description without actually using it as a replacement variable, can break the script.*
 
 #### Spells
 The Spell tables are not weighted as the Magic Items are, but are a simple list of all available spells that are used to generate spell scrolls. Each level of spell is a comma delimited list on one line with a heading designating the level of the spells in the list. These headings should be in ALL CAPS followed by a colon and also on their own line. "CANTRIPS:" or "0 LEVEL:" are allowed for cantrips, while the remainder should be "1ST LEVEL:" and so on.
