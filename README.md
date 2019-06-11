@@ -22,7 +22,7 @@ Loot Generator can detect the presence of my [PurseStrings script](https://githu
 * **[--import](#--import)**
 
 ## --show
-This command is the meat of the script. It generates loot based on the DMG Treasure tables (plus the Mundane Items) and can be modified by various options. Each command begins with double dashes and uses a colon to separate the command from its contents.
+This command is the meat of the script. It generates loot based on the DMG Treasure tables (plus the Mundane Items) and can be modified by various parameters. Each parameter begins with double dashes and uses a colon to separate the command from its contents. The `--show` command must follow `!loot`, but the parameters can be called in any order.
 
 #### --type
 *Mandatory.* There are 2 general types of loot: *Individual* and *Horde*. There are also 4 levels based on the Challenge Rating (CR) of the monster/NPC from which the loot is coming: level 1 for CR 0 - 4, level 2 is CR 5 - 10, level 3 is CR 11 - 16, and level 4 is CR 17 and higher. Passing `--type:Indiv1` will generate Individual loot for level 1 (CR 0 - 4). `Horde2` will generate Horde loot for level 2 (CR 5 - 10), etc.
@@ -47,6 +47,11 @@ The possible parameters for this command are:
 * 'no-mundane' or 'show-mundane'
 * 'no-magic' or 'show-magic'
 * 'no-coins'
+
+```!loot --show --type:Indiv1```
+```!loot --show --type:Indiv1 --mod:no-gems,no-art```
+```!loot --show --loc:Dragon's Lair --type:Horde4```
+```!loot --show --type:Indiv2 --mod:no-art --incl:Love Letter to Bryon```
 
 Note: In keeping with the DMG guidelines, Gems, Art, and Magic Items are *only* available as Horde items. Passing `--mod:show-gems` with the `--type:Indiv1` command will still not generate Gems. Coins are the bare minimum for any loot, so there is no default for preventing Coins from being generated. However, the option to skip them for special circumstances is provided.
 
