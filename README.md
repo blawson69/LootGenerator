@@ -22,10 +22,10 @@ Loot Generator can detect the presence of my [PurseStrings script](https://githu
 * **[--import](#--import)**
 
 ## --show
-This command is the meat of the script. It generates loot based on the DMG Treasure tables (plus the Mundane Items) and can modified by various options. Each command begins with double dashes and uses a colon to separate the command from its contents.
+This command is the meat of the script. It generates loot based on the DMG Treasure tables (plus the Mundane Items) and can be modified by various options. Each command begins with double dashes and uses a colon to separate the command from its contents.
 
 #### --type
-*Mandatory.* There are 2 general types of loot: *Individual* and *Horde*. There are also 4 levels based on the Challenge Rating (CR) of the monster/NPC from which the loot is coming: level *1* for CR 0 - 4, level *2* is CR 5 - 10, level *3* is CR 11 - 16, and level *4* is CR 17 and higher. Passing `--type:Indiv1` will generate Individual loot for level 1 (CR 0 - 4). `Horde2` will generate Horde loot for level 2 (CR 5 - 10), etc.
+*Mandatory.* There are 2 general types of loot: *Individual* and *Horde*. There are also 4 levels based on the Challenge Rating (CR) of the monster/NPC from which the loot is coming: level 1 for CR 0 - 4, level 2 is CR 5 - 10, level 3 is CR 11 - 16, and level 4 is CR 17 and higher. Passing `--type:Indiv1` will generate Individual loot for level 1 (CR 0 - 4). `Horde2` will generate Horde loot for level 2 (CR 5 - 10), etc.
 
 #### --Loc
 *Optional.* This command is used to provide the name of the place where the loot was found. By sending `--loc:Pirate's Chest` you make the header read "Loot from Pirate's Chest". By default, the dialog sent to chat will display a simple header of "Loot".
@@ -39,7 +39,7 @@ This command is the meat of the script. It generates loot based on the DMG Treas
 #### --mod
 *Optional.* This command is used to override the [defaults](#--config) for showing the Gems, Art, Mundane Item, and Magic Item categories, allowing you to fine tune or customize the loot generated. To eliminate a category, send "no-" and the category of item you wish to skip. Sending `--mod:no-gems` will prevent Loot Generator from generating gems. If your default is not to show Art items, for instance, you can send `--mod:show-art` to make the script generate art objects for the loot.
 
-You can modify more than one category by sending multiple parameters separated with a colon. Sending `--mod:no-gems,show-mundane` will override any defaults to Gems and Mundane Items to skip Gems and include Mundane Items.
+You can modify more than one category by sending multiple parameters separated with a comma. Sending `--mod:no-gems,show-mundane` will override any defaults to Gems and Mundane Items to skip Gems and include Mundane Items.
 
 The possible parameters for this command are:
 * 'no-gems' or 'show-gems'
@@ -50,11 +50,9 @@ The possible parameters for this command are:
 
 Note: In keeping with the DMG guidelines, Gems, Art, and Magic Items are *only* available as Horde items. Passing `--mod:show-gems` with the `--type:Indiv1` command will still not generate Gems. Coins are the bare minimum for any loot, so there is no default for preventing Coins from being generated. However, the option to skip them for special circumstances is provided.
 
----
 ## --config
-Gems, Art and Mundane item generation can all be controlled through commands. However, you may want to set default values for whether these items are generated to avoid always having to pass values through the [`--mod`](#--show) command. This is done through the Config Menu. This menu will also provide a button to [run database setup](#--setup).
+Gems, Art and Mundane item generation can all be controlled through commands. However, you may want to set default values for whether these items are generated to avoid always having to pass values through the [`--mod`](#--show) command. This is done through the Config Menu.
 
----
 ## --setup
 Prior to use, you must run this function to populate the loot database. This uses tables found in the DMG and PHB.
 
@@ -62,13 +60,13 @@ Prior to use, you must run this function to populate the loot database. This use
 
 Unique magic items are automatically removed from the loot database after generation, so a reset option is provided to re-populate the database if necessary. To do so, pass the `--reset` modifier along with the `--setup` command.
 
----
+```!loot --setup --reset```
+
 ## --help
-Displays the help for formatting the [--show](#--show) command and a link to display the [Config Menu](#--config).
+Displays help for formatting the [--show](#--show) command and a link to display the [Config Menu](#--config).
 
 ```!loot --help```
 
----
 ## --export
 To provide customization options for Magic Items and Spells, export and [import](#--import) options are provided. The easiest way to make changes to the default database is to first export the data into handouts. This will give you the proper format for your additional items and provides handouts with the proper titles that the import function will look for.
 
@@ -81,7 +79,11 @@ Importing gives you the ability to customize your Magic Items and Spells lists. 
 
 There are 2 parameters that must be included in the import command: `--action` and `--tables`: The first specifies whether the Items to be imported "overwrite" the data or merely "append" the new Items to the old data. Because there is no way to accurately prevent duplicates, it is highly recommended to use the overwrite action with an exported table to which new Items have been added. In any case, the parameter to use is either `--action:overwrite` or `--action:append`.
 
-The `--tables` parameter is a comma delimited list of Magic Item tables and/or Spells that you wish to make changes to. The options are *Table A, table B, Table C, Table D, Table E, Table F, Table G, Table H, Table I, Mundane*, and *Spells*. If you wish to only modify the Spells, send `--tables:Spells` along with `--import` and `--action:<overwrite/append>` commands. If you are adding to Magic Table A and Spells, use `--tables:Table A,Spells`, etc.
+The `--tables` parameter is a comma delimited list of Magic Item tables and/or Spells that you wish to make changes to. The options are *Table A, Table B, Table C, Table D, Table E, Table F, Table G, Table H, Table I, Mundane*, and *Spells*. If you wish to only modify the Spells, send
+
+```!loot --import --action:overwrite --tables:Spells```
+
+If you are adding to Magic Table A and Spells, use `--tables:Table A,Spells`, etc.
 
 #### Magic & Mundane Items
 Magic & Mundane Items have a specific format that allows a weighted distribution. For instance, Items with a weight of 2 will be twice as likely to be encountered as an item with a weight of 1. The default Items have a weight value based on the d100 roll from the DMG tables, so be aware that adding a large number of new items will skew those weights accordingly.
@@ -101,9 +103,9 @@ The custom Item "1|%%swords%% of Yawning" may give *Longsword of Yawning*. The I
 *Be careful when editing exported handouts! Leaving out a replacement character or using one in an Item description without actually using it as a replacement variable can break the script.*
 
 #### Spells
-The Spell tables are not weighted as the Magic Items are, but are a simple list of all available spells. Each level of spell is a comma delimited list on one line with a heading designating the level of the spells in the list. These headings should be in ALL CAPS followed by a colon and also on their own line. "CANTRIPS" or "0 LEVEL" are allowed for cantrips, while the remainder should be "1ST LEVEL" and so on.
+The Spell tables are not weighted as the Magic Items are, but are a simple list of all available spells that are used to generate spell scrolls. Each level of spell is a comma delimited list on one line with a heading designating the level of the spells in the list. These headings should be in ALL CAPS followed by a colon and also on their own line. "CANTRIPS:" or "0 LEVEL:" are allowed for cantrips, while the remainder should be "1ST LEVEL:" and so on.
 
 If you are appending spells, you may leave off those spell levels for which you do not have any spells to append.
 
 #### Formatting Guidelines
-Because you could be generating quite a lengthy list of loot items, avoid using commas in your item descriptions. You will notice that default items such as "Shield, +1" has been changed to "+1 Shield" in the database to avoid confusion. Also, the use of parenthesis should be minimized as they are mostly used to denote multiples of items.
+Because you could be generating quite a lengthy list of loot items, avoid using commas in your custom Item names. You will notice that default Item names that usually contain commas have been modified to remove them. For instance, "Shield, +1" has been changed to "+1 Shield". This helps avoid item confusion on long lists. Also, the use of parenthesis should be minimized. These are used primarily by LootGenerator to denote multiples of items.
