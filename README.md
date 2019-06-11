@@ -48,10 +48,12 @@ The possible parameters for this command are:
 * 'no-magic' or 'show-magic'
 * 'no-coins'
 
-```!loot --show --type:Indiv1```
-```!loot --show --type:Indiv1 --mod:no-gems,no-art```
-```!loot --show --loc:Dragon's Lair --type:Horde4```
-```!loot --show --type:Indiv2 --mod:no-art --incl:Love Letter to Bryon```
+```
+!loot --show --type:Indiv1
+!loot --show --type:Indiv1 --mod:no-gems,no-art
+!loot --show --loc:Dragon's Lair --type:Horde4
+!loot --show --type:Indiv2 --mod:no-art --incl:Love Letter to Bryon
+```
 
 Note: In keeping with the DMG guidelines, Gems, Art, and Magic Items are *only* available as Horde items. Passing `--mod:show-gems` with the `--type:Indiv1` command will still not generate Gems. Coins are the bare minimum for any loot, so there is no default for preventing Coins from being generated. However, the option to skip them for special circumstances is provided.
 
