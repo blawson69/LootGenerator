@@ -94,10 +94,10 @@ The format for Magic & Mundane Items is "weight|name" or "weight|name|unique", e
 
 #### Replacement Variables
 The Magic & Mundane Items tables use a replacement syntax that allows randomization of items and the rolling of dice. You will encounter many of these in the [exported handouts](#--export), but only a few (below) will be relevant for use in your custom Items. Words surrounded by %% are randomized selectors, while any die expression such as 1d4 will be within @ signs.
-* %%damageTypes%% will return a random damage type, such as Acid, Fire, or Necrotic.
-* %%monsterTypes%% will return a random monster type, such as Beast, Dragon, or Giant.
-* %%swords%% will return either Shortsword, Longsword, or Greatsword for magic swords.
-* %%ammo%% will return Arrow, Crossbow Bolt, Sling Bullet, or Blowgun Needle. Note that these are singular, so that any time you wish to produce multiples you will need an s after.
+* **%%damageTypes%%** will return a random damage type, such as Acid, Fire, or Necrotic.
+* **%%monsterTypes%%** will return a random monster type, such as Beast, Dragon, or Giant.
+* **%%swords%%** will return either Shortsword, Longsword, or Greatsword for magic swords.
+* **%%ammo%%** will return Arrow, Crossbow Bolt, Sling Bullet, or Blowgun Needle. Note that these are singular, so that any time you wish to produce multiples you will need an s after.
 The custom Item "1|%%swords%% of Yawning" may give *Longsword of Yawning*. The Item "1|Potion of %%damageTypes%% Breath" could yield a *Potion of Thunder Breath*, while "Homing %%ammo%%s (@1d4+1@)" can produce *Homing Crossbow Bolts (3)*.
 
 *Be careful when editing exported handouts! Leaving out a replacement character or using one in an Item description without actually using it as a replacement variable can break the script.*
