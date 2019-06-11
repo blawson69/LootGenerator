@@ -100,6 +100,7 @@ The Magic & Mundane Items tables use a replacement syntax that allows randomizat
 * **%%ammo%%** will return Arrow, Crossbow Bolt, Sling Bullet, or Blowgun Needle. Note that these are singular, so that any time you wish to produce multiples you will need an s after.
 
 Examples:
+
 | Database Entry| Generated Loot|
 | ------------- |-------------|
 | *%%swords%%* of Yawning |Longsword of Yawning|
