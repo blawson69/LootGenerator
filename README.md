@@ -1,6 +1,6 @@
 # LootGenerator
 
-This [Roll20](http://roll20.net/) script generates loot according to the treasure tables in the Dungeon & Dragons Dungeon Master's Guide. It generates a random number (1d100) and displays the results in chat with options for showing the name of the character discovering the treasure, the name of the object from which the loot is taken, and more. Loot Generator will also let you add your own special item to the list and provides options for suppressing the generation of various kinds of loot.
+This [Roll20](http://roll20.net/) script generates loot according to the treasure tables in the Dungeon & Dragons 5th Edition Dungeon Master's Guide. It generates a random number (1d100) and displays the results in chat with options for showing the name of the character discovering the treasure, the name of the object from which the loot is taken, and more. Loot Generator will also let you add your own special item to the list and provides options for suppressing the generation of various kinds of loot.
 
 As an improvement to the basic treasure tables, Loot Generator also includes a Mundane Items category in addition to the default Coins, Gems, Art, and Magic Items categories. These Mundane Items include items from Player's Handbook's Adventuring Gear.
 
