@@ -125,7 +125,7 @@ var LootGenerator = LootGenerator || (function () {
             showDialog(title, message);
 
             // Provide access to PurseStrings functions
-            if (typeof PurseStrings !== 'undefined' && coins != '') {
+            if (typeof PurseStrings !== 'undefined' && coins != '' && coins != '[coins error]') {
                 var psMessage = 'Coins found: ' + coins + '.'
                 + '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!ps --dist ' + coins + '">Distribute to Party Members</a></div>'
                 + '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!ps --add ' + coins + '">Add to <i>selected character</i></a></div>'
@@ -728,6 +728,15 @@ var LootGenerator = LootGenerator || (function () {
         message += '<b style=\'' + styles.code + '\'>&lt;overwrite_append&gt;:</b><br>Mandatory. Either <i>overwrite</i> or <i>append</i>, the former being recommended to prevent duplicates.<br><br>';
         message += '<b style=\'' + styles.code + '\'>&lt;table_name&gt;:</b><br>Mandatory. Indicates which handouts (comma delimited) to import. Available values are <i>Table A, Table B, Table C, Table D, Table E, Table F, Table G, Table H, Table I</i> for Magic Item tables; <i>Mundane</i> for Mundane Items, and <i>Spells</i> for Spells.<br><br>';
         message += 'See the <a style="' + styles.textButton + '" href="https://github.com/blawson69/LootGenerator">documentation</a> for complete instructions.';
+
+        if (PurseStrings !== 'undefined' || PotionManager !== 'undefined' || GearManager !== 'undefined') {
+            message += '<hr><div style=\'' + styles.title + '\'>Script Integration</div>Commands for relevant loot items will be generated for following installed scripts:<ul>';
+            if (typeof PurseStrings !== 'undefined') message += '<li>PurseStrings</li>';
+            if (typeof PotionManager !== 'undefined') message += '<li>PotionManager</li>';
+            if (typeof GearManager !== 'undefined') message += '<li>GearManager</li>';
+            message += '</ul>';
+        }
+
         message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --help">Show Help Menu</a></div>';
         adminDialog('', message);
     },
@@ -869,7 +878,7 @@ var LootGenerator = LootGenerator || (function () {
                 var muNote = findObjs({name: 'Loot Generator: Mundane Items', type: 'handout'})[0];
                 if (muNote) {
                     muNote.get('notes', function (notes) {
-                        oldData = (append) ? state['LootGenerator'].mundane.gear : [],
+                        var oldData = (append) ? state['LootGenerator'].mundane.gear : [],
                         items = decodeEditorText(notes, {asArray:true});
                         _.each(items, function (item) {
                             if (item.search(/\|/) > 0) {
