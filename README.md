@@ -7,7 +7,7 @@ As an improvement to the basic treasure tables, Loot Generator also includes a M
 Loot Generator also allows for adding custom Magic Items, Mundane Items and Spells.
 
 ## Script Integration
-Loot Generator can detect the presence of my [PurseStrings script](https://github.com/blawson69/PurseStrings), and will provide the GM a link for distributing or adding coins as needed.
+Loot Generator can detect the presence of my [PurseStrings](https://github.com/blawson69/PurseStrings),  [PotionManager](https://github.com/blawson69/PotionManager), and  [GearManager](https://github.com/blawson69/GearManager), and will provide the GM a link for distributing or adding coins and items as needed.
 
 ## Syntax
 
