@@ -34,7 +34,9 @@ This command is the meat of the script. It generates loot based on the DMG Treas
 *Optional*. By default, the dialog sent to chat will simply show the list of loot items found. If you wish to indicate the name of the player who discovered the loot, use `--recip:` plus the character's name to display the name of the recipient before the list of loot items.
 
 #### --incl
-*Optional.* Often you will want to include a special item in the list of items found. This could be a special quest item, a mysterious note, etc. For example, using `--incl:Birthday Cake` will add "Birthday Cake" to the loot found. If you want your special item to have emphasis, you may surround the text with asterisks. Sending `--incl:*Birthday Cake*` becomes "*Birthday Cake*" in the output.
+*Optional.* Often you will want to include a special item in the list of items found. This could be a special quest item, a mysterious note, etc. For example, using `--incl:Cake of Surprise` will add "Cake of Surprise" to the loot found. If you want your special item to have emphasis, you may surround the text with asterisks. Sending `--incl:*Cake of Surprise*` becomes "*Cake of Surprise*" in the output.
+
+If you wish to pass more than one item, you may separate items with a comma. Note that if you wish to use emphasis on these items you will need *each individual item* enclosed in asterisks. For example, use `--incl:Cake of Surprise,Birthday Present` or `--incl:*Cake of Surprise*,*Birthday Present*`.
 
 #### --mod
 *Optional.* This command is used to override the [defaults](#--config) for showing the Gems, Art, Mundane Item, and Magic Item categories, allowing you to fine tune or customize the loot generated. To eliminate a category, send "no-" and the category of item you wish to skip. Sending `--mod:no-gems` will prevent Loot Generator from generating gems. If your default is not to show Art items, for instance, you can send `--mod:show-art` to make the script generate art objects for the loot.

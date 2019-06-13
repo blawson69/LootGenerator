@@ -112,10 +112,13 @@ var LootGenerator = LootGenerator || (function () {
                 if ((state['LootGenerator'].useArt && mod.search('no-art') == -1) || mod.search('show-art') >= 0) treasure.push(generateArt(dieroll, level));
                 if ((state['LootGenerator'].useMagic && mod.search('no-magic') == -1) || mod.search('show-magic') >= 0) treasure.push(generateMagicItems(dieroll, level));
             }
+            if (xtra != '') {
+                xtra = xtra.replace(/\\|\[|\]|\{|\}|\||\%|\$|\#|\@|\|/g, '');
+                treasure.push(xtra.split(/\s*,\s*/));
+            }
             treasure = _.shuffle(_.flatten(treasure));
 
             if (_.size(treasure) > 0) loot.push(treasure);
-            if (xtra != '') loot.push(xtra);
             loot = _.flatten(loot);
 
             title += (loc) ? ' from ' + loc : '';
@@ -1017,7 +1020,6 @@ var LootGenerator = LootGenerator || (function () {
 
     HE = (function() {
         var entities={
-                //' ' : '&'+'nbsp'+';',
                 '<' : '&'+'lt'+';',
                 '>' : '&'+'gt'+';',
                 "'" : '&'+'#39'+';',
