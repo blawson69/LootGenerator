@@ -102,8 +102,8 @@ The format for Magic & Mundane Items is "weight|name" or "weight|name|unique", e
 
 #### Replacement Variables
 The Magic & Mundane Items tables use a replacement syntax that allows randomization of items and the rolling of dice. You will encounter many of these in the [exported handouts](#--export), but only a few (below) will be relevant for use in your custom Items. Words surrounded by %% are randomized selectors, while any die expression such as 1d4 will be within @ signs.
-* **%%damageTypes%%** will return a random damage type, such as Acid, Fire, or Necrotic.
-* **%%monsterTypes%%** will return a random monster type, such as Beast, Dragon, or Giant.
+* **%%damage_types%%** will return a random damage type, such as Acid, Fire, or Necrotic.
+* **%%monster_types%%** will return a random monster type, such as Beast, Dragon, or Giant.
 * **%%swords%%** will return either Shortsword, Longsword, or Greatsword for magic swords.
 * **%%ammo%%** will return Arrow, Crossbow Bolt, Sling Bullet, or Blowgun Needle. Note that these are singular, so that any time you wish to produce multiples you will need an s after.
 
@@ -112,7 +112,7 @@ Examples:
 | Database Entry| Generated Loot|
 | ------------- |-------------|
 | *%%swords%%* of Yawning |Longsword of Yawning|
-|Potion of *%%damageTypes%%* Breath|Potion of Thunder Breath|
+|Potion of *%%damage_types%%* Breath|Potion of Thunder Breath|
 |Homing *%%ammo%%*s (*@1d4+1@*)|Homing Crossbow Bolts (3)|
 
 *Be careful when editing exported handouts! Leaving out a replacement variable character, or using one in an Item description without actually using it as a replacement variable, can break the script.*
