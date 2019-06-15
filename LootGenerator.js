@@ -21,7 +21,6 @@ var LootGenerator = LootGenerator || (function () {
         button: 'background-color: #000; border-width: 0px; border-radius: 5px; padding: 5px 8px; color: #fff; text-align: center;',
         buttonWrapper: 'text-align: center; margin: 10px 0; clear: both;',
         textButton: 'background-color: transparent; border: none; padding: 0; color: #591209; text-decoration: underline;',
-        cardName: 'padding: 12px 0; color: ##591209; font-size: 2em; font-weight: bold; font-variant: small-caps; font-family: "Times New Roman",Times,serif;',
         fullWidth: 'width: 100%; display: block; padding: 12px 0; text-align: center;',
         code: 'font-family: "Courier New", Courier, monospace; padding-bottom: 6px;',
         accent: 'background-color: ##eaeaea;'
