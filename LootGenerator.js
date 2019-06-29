@@ -12,7 +12,7 @@ var LootGenerator = LootGenerator || (function () {
 
     //---- INFO ----//
 
-    var version = '0.1',
+    var version = '0.2',
     debugMode = false,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 8px 10px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
@@ -102,14 +102,16 @@ var LootGenerator = LootGenerator || (function () {
             horde = (type.toLowerCase().startsWith('ind')) ? false : true; // Horde or Indiv
             dieroll = randomInteger(100);
 
-            if (mod.search('no-coins') == -1) coins = generateCoins(dieroll, horde, level);
+            if (mod.search('no-coins') == -1) coins = generateCoins(modifyRoll(dieroll, 'coins', mod), horde, level);
             if (coins != '') loot.push(coins);
 
-            if ((state['LootGenerator'].useMundane && mod.search('no-mundane') == -1) || mod.search('show-mundane') >= 0) treasure.push(generateMundane(dieroll, horde, level));
+            if ((state['LootGenerator'].useMundane && mod.search('no-mundane') == -1) || mod.search(/[show|less|more]\-mundane/gi) >= 0) {
+                treasure.push(generateMundane(modifyRoll(dieroll, 'mundane', mod), horde, level));
+            }
             if (horde) {
-                if ((state['LootGenerator'].useGems && mod.search('no-gems') == -1) || mod.search('show-gems') >= 0) treasure.push(generateGems(dieroll, level));
-                if ((state['LootGenerator'].useArt && mod.search('no-art') == -1) || mod.search('show-art') >= 0) treasure.push(generateArt(dieroll, level));
-                if ((state['LootGenerator'].useMagic && mod.search('no-magic') == -1) || mod.search('show-magic') >= 0) treasure.push(generateMagicItems(dieroll, level));
+                if ((state['LootGenerator'].useGems && mod.search('no-gems') == -1) || mod.search(/[show|less|more]\-gems/gi) >= 0) treasure.push(generateGems(modifyRoll(dieroll, 'gems', mod), level));
+                if ((state['LootGenerator'].useArt && mod.search('no-art') == -1) || mod.search(/[show|less|more]\-art/gi) >= 0) treasure.push(generateArt(modifyRoll(dieroll, 'art', mod), level));
+                if ((state['LootGenerator'].useMagic && mod.search('no-magic') == -1) || mod.search(/[show|less|more]\-magic/gi) >= 0) treasure.push(generateMagicItems(modifyRoll(dieroll, 'magic', mod), level));
             }
             if (xtra != '') {
                 xtra = xtra.replace(/\\|\[|\]|\{|\}|\||\%|\$|\#|\@|\|/g, '');
@@ -391,6 +393,7 @@ var LootGenerator = LootGenerator || (function () {
     generateMundane = function (index, horde, level) {
         // Returns an array of magic items
         var count, tmpItem, diceExp, tmpArray = [], items = [], err = false;
+        if (debugMode) log('Generating Mundane Items on die roll ' + index + '...');
         if (state['LootGenerator'].mundane) {
             switch (level) {
                 case '1':
@@ -698,8 +701,8 @@ var LootGenerator = LootGenerator || (function () {
         message += '<b style=\'' + styles.code + '\'>&lt;loot_type&gt;:</b><br>Mandatory. Either <i>Indiv</i> or <i>Horde</i>, plus <i>1 - 4</i> corresponding to CR 0-4, CR 5-10, CR 11-16, and CR 17+ respectfully.<br>Examples: <i>Indiv1, Horde3</i><br><br>';
         message += '<b style=\'' + styles.code + '\'>&lt;location&gt;:</b><br>Optional. The name of the location where the loot is found/discovered.<br><br>';
         message += '<b style=\'' + styles.code + '\'>&lt;recipient&gt;:</b><br>Optional. The name of the character who found the loot.<br><br>';
-        message += '<b style=\'' + styles.code + '\'>&lt;modifications&gt;:</b><br>Optional. Modifications (comma delimited) to the default parameters for generating loot. Possible values are <i>no-gems, show-gems, no-art, show-art, no-mundane, show-mundane, no-magic, show-magic,</i> and <i>no-coins</i><br><br>';
-        message += '<b style=\'' + styles.code + '\'>&lt;extra_item&gt;:</b><br>Optional. The name of any extra item(s) to add to the loot.<br><br>';
+        message += '<b style=\'' + styles.code + '\'>&lt;modifications&gt;:</b><br>Optional. Modifications (comma delimited) to the default parameters for generating loot. Possible values are <i>no-, less-, show-,</i> or <i>more-</i> followed by <i>coins, gems, art, mundane,</i> or <i>magic.</i><br>Examples: <i>more-coins</i> and <i>no-magic, less-art</i><br><br>';
+        message += '<b style=\'' + styles.code + '\'>&lt;extra_item&gt;:</b><br>Optional. The name of any extra item(s) to add to the loot. Comma delimited.<br><br>';
         message += 'See the <a style="' + styles.textButton + '" href="https://github.com/blawson69/LootGenerator">documentation</a> for complete instructions.';
         message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --config">Show Config Menu</a></div>';
         adminDialog('Help Menu', message);
@@ -726,12 +729,11 @@ var LootGenerator = LootGenerator || (function () {
         message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --export">Export Data</a></div>';
         message += 'Edit the exported handouts to add your own Items and Spells, then use the import command to update the database.<br><br>';
         message += 'Syntax for importing is as follows (all on one line): <div style=\'' + styles.code
-        + '\'>!loot --import --action:&lt;overwrite_append&gt; --tables:&lt;table_name&gt;</div>';
-        message += '<b style=\'' + styles.code + '\'>&lt;overwrite_append&gt;:</b><br>Mandatory. Either <i>overwrite</i> or <i>append</i>, the former being recommended to prevent duplicates.<br><br>';
+        + '\'>!loot --import --tables:&lt;table_name&gt;</div>';
         message += '<b style=\'' + styles.code + '\'>&lt;table_name&gt;:</b><br>Mandatory. Indicates which handouts (comma delimited) to import. Available values are <i>Table A, Table B, Table C, Table D, Table E, Table F, Table G, Table H, Table I</i> for Magic Item tables; <i>Mundane</i> for Mundane Items, and <i>Spells</i> for Spells.<br><br>';
         message += 'See the <a style="' + styles.textButton + '" href="https://github.com/blawson69/LootGenerator">documentation</a> for complete instructions.';
 
-        if (PurseStrings !== 'undefined' || PotionManager !== 'undefined' || GearManager !== 'undefined') {
+        if (typeof PurseStrings !== 'undefined' || typeof PotionManager !== 'undefined' || typeof GearManager !== 'undefined') {
             message += '<hr><div style=\'' + styles.title + '\'>Script Integration</div>Commands for relevant loot items will be generated for following installed scripts:<ul>';
             if (typeof PurseStrings !== 'undefined') message += '<li>PurseStrings</li>';
             if (typeof PotionManager !== 'undefined') message += '<li>PotionManager</li>';
@@ -835,22 +837,19 @@ var LootGenerator = LootGenerator || (function () {
 
     commandImport = function (msg) {
         // Import items from handouts
-        // !loot --import --action:overwrite --tables:Table A, Spells
-        var err = {probs: [], tables: []}, append = false, oldData, message, title, action, tables,
+        // !loot --import --tables:Table A, Spells
+        var err = {probs: [], tables: []}, oldData, message, title, tables,
         ra = /\-\-action/gi, rt = /\-\-tables/gi, cmds = msg.split('--');
-        if (ra.test(msg)) action = _.find(cmds, function(tmpStr){ return tmpStr.toLowerCase().startsWith('action:') }).split(':')[1].trim();
         if (rt.test(msg)) tables = _.find(cmds, function(tmpStr){ return tmpStr.toLowerCase().startsWith('tables:') }).split(':')[1].trim().split(/,\s*/);
 
-        if (action && tables) {
-            if (action == 'append') append = true;
-
+        if (tables) {
             var magic = [{heading:'Table A',table:'tableA'}, {heading:'Table B',table:'tableB'}, {heading:'Table C',table:'tableC'}, {heading:'Table D',table:'tableD'}, {heading:'Table E',table:'tableE'}, {heading:'Table F',table:'tableF'}, {heading:'Table G',table:'tableG'}, {heading:'Table H',table:'tableH'}, {heading:'Table I',table:'tableI'}];
             _.each(magic, function (level) {
                 var mNote = findObjs({name: 'Loot Generator: Magic ' + level.heading, type: 'handout'})[0];
                 if (mNote) {
                     mNote.get('notes', function (notes) {
                         var items = decodeEditorText(notes, {asArray:true});
-                        oldData = (append) ? state['LootGenerator'].magic[level.table] : [];
+                        oldData = [];
                         _.each(items, function (item) {
                             if (item.search(/\|/) > 0) {
                                 let aItem = item.split('|'), tmpItem = {};
@@ -880,8 +879,7 @@ var LootGenerator = LootGenerator || (function () {
                 var muNote = findObjs({name: 'Loot Generator: Mundane Items', type: 'handout'})[0];
                 if (muNote) {
                     muNote.get('notes', function (notes) {
-                        var oldData = (append) ? state['LootGenerator'].mundane.gear : [],
-                        items = decodeEditorText(notes, {asArray:true});
+                        var oldData = [], items = decodeEditorText(notes, {asArray:true});
                         _.each(items, function (item) {
                             if (item.search(/\|/) > 0) {
                                 let aItem = item.split('|'), tmpItem = {};
@@ -918,7 +916,7 @@ var LootGenerator = LootGenerator || (function () {
                             if (_.find(items, function (x) { return x.search(level.heading) >= 0; })) {
                                 let index = _.indexOf(items, level.heading) + 1;
                                 if (items[index] && items[index].trim() != '') {
-                                    oldData = (append) ? state['LootGenerator'].spells[level.level] : [];
+                                    oldData = [];
                                     oldData.push(items[index].split(/,\s*/));
                                     oldData = _.flatten(oldData);
                                     state['LootGenerator'].spells[level.level] = oldData;
@@ -943,7 +941,7 @@ var LootGenerator = LootGenerator || (function () {
             if (err.tables.length && err.tables.length > 0) message += 'These errors occured for these tables:' + err.tables.join(', ') + '.<br><br>';
             if (_.find(err.probs, function(x) { return x.search('pipe') >= 0 || x.search('number of items') >= 0; })) message += 'Each magic item should follow this format:<div style=\'' + styles.code + '\'>weight|Item Name</div> or <div style=\'' + styles.code + '\'>weight|Item Name|unique</div>';
             if (_.find(err.probs, function(x) { return x.search('minimum parameters') >= 0; })) message += 'The import syntax is as follows:<br>'
-            + '<div style=\'' + styles.code + '\'>!loot --import --action:overwrite/append --tables:Table A, Spells</div>';
+            + '<div style=\'' + styles.code + '\'>!loot --import --tables:Table A, Spells</div>';
         } else {
             title = 'Import Complete';
             message = 'Items have been successfully imported to the following tables: ' + tables.join(', ') + '.';
@@ -964,6 +962,14 @@ var LootGenerator = LootGenerator || (function () {
             else retItems.push(item);
         });
         return retItems;
+    },
+
+    modifyRoll = function (roll, type, mods) {
+        // Returns a modified die roll based on the "more" and "less" commands
+        var newRoll = roll;
+        if (mods.search('more-' + type) >= 0) newRoll = (roll >= 75) ? 100 : roll + 25;
+        if (mods.search('less-' + type) >= 0) newRoll = (roll <= 25) ? 1 : roll - 25;
+        return newRoll;
     },
 
     rollDice = function (exp) {
