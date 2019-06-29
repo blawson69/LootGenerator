@@ -697,12 +697,12 @@ var LootGenerator = LootGenerator || (function () {
 
     commandHelp = function () {
         var message = 'Use the <span style=\'' + styles.code + '\'>--show</span> command to generate loot. Syntax (all on one line):';
-        message += '<div style=\'' + styles.code + '\'>!loot --show --type:&lt;loot_type&gt; --loc:&lt;location&gt; --recip:&lt;recipient&gt; --mod:&lt;modifications&gt; --incl:&lt;extra_item&gt;</div><br>';
+        message += '<div style=\'' + styles.code + '\'>!loot --show --type:&lt;loot_type&gt; --loc:&lt;location&gt; --recip:&lt;recipient&gt; --mod:&lt;modifications&gt; --incl:&lt;special_item&gt;</div><br>';
         message += '<b style=\'' + styles.code + '\'>&lt;loot_type&gt;:</b><br>Mandatory. Either <i>Indiv</i> or <i>Horde</i>, plus <i>1 - 4</i> corresponding to CR 0-4, CR 5-10, CR 11-16, and CR 17+ respectfully.<br>Examples: <i>Indiv1, Horde3</i><br><br>';
         message += '<b style=\'' + styles.code + '\'>&lt;location&gt;:</b><br>Optional. The name of the location where the loot is found/discovered.<br><br>';
         message += '<b style=\'' + styles.code + '\'>&lt;recipient&gt;:</b><br>Optional. The name of the character who found the loot.<br><br>';
         message += '<b style=\'' + styles.code + '\'>&lt;modifications&gt;:</b><br>Optional. Modifications (comma delimited) to the default parameters for generating loot. Possible values are <i>no-, less-, show-,</i> or <i>more-</i> followed by <i>coins, gems, art, mundane,</i> or <i>magic.</i><br>Examples: <i>more-coins</i> and <i>no-magic, less-art</i><br><br>';
-        message += '<b style=\'' + styles.code + '\'>&lt;extra_item&gt;:</b><br>Optional. The name of any extra item(s) to add to the loot. Comma delimited.<br><br>';
+        message += '<b style=\'' + styles.code + '\'>&lt;special_item&gt;:</b><br>Optional. One or more special items (comma delimited) to add to the loot.<br><br>';
         message += 'See the <a style="' + styles.textButton + '" href="https://github.com/blawson69/LootGenerator">documentation</a> for complete instructions.';
         message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --config">Show Config Menu</a></div>';
         adminDialog('Help Menu', message);
