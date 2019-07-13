@@ -43,23 +43,23 @@ Note: Special items will always be mixed in with all other Mundane and/or Magic 
 #### --mod
 *Optional.* This command is used to override the [defaults](#--config) for showing the Coins, Gems, Art, Mundane Item, and Magic Item categories, allowing you to fine tune or customize the loot generated. To eliminate a category, send "no-" and the category of item you wish to skip. Sending `--mod:no-gems` will prevent Loot Generator from generating gems. If your default is not to show Art items, for instance, you can send `--mod:show-art` to make the script generate art objects for the loot.
 
+You may also modify the results of the different categories by using the "less-" and "more-" prefixes. This will subtract or add, respectfully, 25 points from the die roll for each loot category you wish to modify. For instance, sending `--mod:more-coins` will add 25 to the die roll for the results of the Coins. If the script generates a die roll of 50, it will use 50 for every other loot category and 75 for the Coins. Keep in mind this does not cut the actual number of Items or Coins in half, it only returns results based on a much higher or lower die roll. For Magic Items, using "more-" could result in fewer but more powerful of items.
+
 You can modify more than one category by sending multiple parameters separated with a comma. Sending `--mod:no-gems,show-mundane` will override any defaults to Gems and Mundane Items to skip Gems and include Mundane Items.
 
 The possible parameters for this command are:
-* 'no-gems' or 'show-gems'
-* 'no-art' or 'show-art'
-* 'no-mundane' or 'show-mundane'
-* 'no-magic' or 'show-magic'
-* 'no-coins'
+* 'no-gems', 'less-gems', 'more-gems', and 'show-gems'
+* 'no-art', 'less-art', 'more-art', and 'show-art'
+* 'no-mundane', 'less-mundane', 'more-mundane', and 'show-mundane'
+* 'no-magic', 'less-magic', 'more-magic', and 'show-magic'
+* 'no-coins', 'less-coins', and 'more-coins'
 
-You may also modify the results of the different categories by using the "less-" and "more-" prefixes. This will subtract or add, respectfully, 25 points from the die roll for each loot category you wish to modify. For instance, sending `--mod:more-coins` will add 25 to the die roll for the results of the Coins. If the script generates a die roll of 50, it will use 50 for every other loot category and 75 for the Coins. Keep in mind this does not cut the actual number of Items or Coins in half, it only returns results based on a much higher or lower die roll.
-
-Note: In keeping with the DMG guidelines, Gems, Art, and Magic Items are *only* available as Horde items. Passing `--mod:show-gems` with the `--type:Indiv1` command will still not generate Gems. Coins are the bare minimum for any loot, so there is no default for preventing Coins from being generated. However, the option to skip them for special circumstances is provided.
+Note: In keeping with the DMG guidelines, Gems, Art, and Magic Items are *only* available as Horde items. Passing `--mod:show-gems` with the `--type:Indiv1` command will still not generate Gems. Coins are the bare minimum for any loot, so there is no default for preventing Coins from being generated.
 
 #### Examples
 ```
 !loot --show --type:Horde3
-!loot --show --type:Indiv1 --mod:no-gems,no-art
+!loot --show --type:Indiv1 --mod:less-gems,no-art
 !loot --show --loc:Dragon's Lair --type:Horde4
 !loot --show --type:Indiv2 --recip:Pip the Pickpocket --incl:Love Letter to Bryon
 ```
