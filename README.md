@@ -2,7 +2,7 @@
 
 This [Roll20](http://roll20.net/) script generates loot according to the treasure tables in the Dungeon & Dragons 5th Edition Dungeon Master's Guide (DMG). It generates a random number (1d100) and displays the results in chat with options for showing the name of the character discovering the treasure, the name of the object from which the loot is taken, and more. Loot Generator will also let you add your own special item to the list and provides options for modifying the generation of various kinds of loot.
 
-As an improvement to the basic treasure tables, Loot Generator also includes a Mundane Items category in addition to the default Coins, Gems, Art, and Magic Items categories. These Mundane Items include items from Player's Handbook's list of Adventuring Gear.
+As an improvement to the basic treasure tables, Loot Generator also includes a Mundane Items category in addition to the default Coins, Gems, Art, and Magic Items categories. The default Mundane Items include Adventuring Gear from the Player's Handbook.
 
 Loot Generator also allows for adding custom Magic Items, Mundane Items and Spells.
 
@@ -22,10 +22,10 @@ Loot Generator can detect the presence of my [PurseStrings](https://github.com/b
 * **[--import](#--import)**
 
 ## --show
-This command is the meat of the script. It generates loot based on the DMG Treasure tables (plus the Mundane Items) and can be modified by various parameters. Each parameter begins with double dashes and uses a colon to separate the command from its contents. The `--show` command must follow `!loot`, but the following parameters can be called in any order.
+This command is the meat of the LootGenerator script. It generates treasure based on the DMG Treasure tables (plus the Mundane Items) and can be modified by various parameters. Each parameter begins with double dashes and uses a colon to separate the command from its contents. The `--show` command must follow `!loot`, but the following parameters can be called in any order.
 
 #### --type
-*Mandatory.* There are 2 general types of loot: *Individual* and *Horde*. There are also 4 levels based on the Challenge Rating (CR) of the monster/NPC from which the loot is coming: level 1 for CR 0-4, level 2 is CR 5-10, level 3 is CR 11-16, and level 4 is CR 17 and higher. The type and level are given together. For instance, passing `--type:Indiv1` will generate Individual loot for CR 0-4. `Horde2` will generate Horde loot for CR 5-10, etc.
+*Mandatory.* There are 2 general types of loot: *Individual* and *Horde*. There are also 4 treasure levels based on the Challenge Rating (CR) of the monster(s)/NPC(s) from which the loot is coming: level 1 for CR 0-4, level 2 is CR 5-10, level 3 is CR 11-16, and level 4 is CR 17 and higher. The type and level are given together. For instance, passing `--type:Indiv1` will generate Individual loot for CR 0-4. `--type:Horde2` will generate Horde loot for CR 5-10, etc.
 
 #### --Loc
 *Optional.* This command is used to provide the name of the place where the loot was found. By sending `--loc:Pirate's Chest` you make the header read "Loot from Pirate's Chest". By default, the dialog sent to chat will display a simple header of "Loot".
@@ -38,12 +38,12 @@ This command is the meat of the script. It generates loot based on the DMG Treas
 
 If you wish to pass more than one item, you may separate items with a comma. Note that if you wish to use emphasis on these items you will need *each individual item* enclosed in asterisks. For example, use `--incl:Cake of Surprise,Birthday Present` or `--incl:*Cake of Surprise*,*Birthday Present*`.
 
-Note: Special items will always be mixed in with all other Mundane and/or Magic items.
+Note: Special items will always be mixed in with all other items.
 
 #### --mod
 *Optional.* This command is used to override the [defaults](#--config) for showing the Coins, Gems, Art, Mundane Item, and Magic Item categories, allowing you to fine tune or customize the loot generated. To eliminate a category, send "no-" and the category of item you wish to skip. Sending `--mod:no-gems` will prevent Loot Generator from generating gems. If your default is not to show Art items, for instance, you can send `--mod:show-art` to make the script generate art objects for the loot.
 
-You may also modify the results of the different categories by using the "less-" and "more-" prefixes. This will subtract or add, respectfully, 25 points from the die roll for each loot category you wish to modify. For instance, sending `--mod:more-coins` will add 25 to the die roll for the results of the Coins. If the script generates a die roll of 50, it will use 50 for every other loot category and 75 for the Coins. Keep in mind this does not cut the actual number of Items or Coins in half, it only returns results based on a much higher or lower die roll. For Magic Items, using "more-" could result in fewer but more powerful of items.
+You may also modify the results of the different categories by using the "less-" and "more-" prefixes. This will subtract or add, respectfully, 25 points from the die roll for each loot category you wish to modify. For instance, sending `--mod:more-coins` will add 25 to the die roll for the results of the Coins. If the script generates a die roll of 50, it will use 50 for every other loot category and 75 for the Coins. Keep in mind this does not double or halve the actual number of Items or Coins, it only returns results based on a much higher or lower die roll. For Magic Items, using "more-" could result in fewer but more powerful of items.
 
 You can modify more than one category by sending multiple parameters separated with a comma. Sending `--mod:no-gems,show-mundane` will override any defaults to Gems and Mundane Items to skip Gems and include Mundane Items.
 
@@ -80,13 +80,6 @@ Unique magic items are automatically removed from the loot database after genera
 Displays help for formatting the [--show](#--show) command and a link to display the [Config Menu](#--config).
 
 ```!loot --help```
-
-## --export
-To provide customization options for Magic Items, Mundane Items, and Spells, export and [import](#--import) options are provided. T0 do this you must first export the data into handouts. This will give you the proper format for your additional items and provides handouts with the proper titles that the import function will look for.
-
-```!loot --export```
-
-Note: If you wish to reset the database to start another campaign, you can skip the [`--setup` command](#--setup) and simply import data from these tables.
 
 ## --import
 Importing gives you the ability to customize your Magic Items, Mundane Items, and Spells lists. Once you have [exported](#--export) the necessary tables you can edit them to your liking. Leave any original items you wish to use and add your own according to the guidelines below.
@@ -126,3 +119,10 @@ The Spell tables are not weighted as the Magic Items are, but are a simple list 
 
 #### Formatting Guidelines
 Because you could be generating quite a lengthy list of loot items, avoid using commas in your custom Item names. You will notice that default Item names that contain commas in the DMG tables have been modified to remove them. For instance, "Shield, +1" has been changed to "+1 Shield". Also, the use of parenthesis should be minimized. These are used primarily by LootGenerator to denote multiples of items. Three Potions of Healing are generated as "Potion of Healing (3)."
+
+## --export
+To provide customization options for Magic Items, Mundane Items, and Spells, export and [import](#--import) options are provided. To do this you must first export the data into handouts. This will give you the proper format for your additional items and provides handouts with the proper titles that the import function will look for. *You must run `--setup` before exporting.*
+
+```!loot --export```
+
+Note: If you wish to reset the database to start another campaign and you have customized these tables, you can skip the [`--setup` command](#--setup) and simply re-import data from these tables.
