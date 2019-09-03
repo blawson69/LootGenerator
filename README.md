@@ -127,7 +127,7 @@ You can use randomization in your own custom items by using $$ around a list of 
 
 | Database Entry| Generated Loot|
 | ------------- |-------------|
-|Wand of *$$Yawning~Winking~Belching$$* |Wand of Winking|
+|Wand of *$$Yawning\~Winking\~Belching$$* |Wand of Winking|
 |*$$@1d6+1@ Large~@1d8+2@ Medium~@1d10+3@ Small$$* *%%monster_types%%* Bones|7 Small Humanoid Bones|
 |Feather of *$$%%ammo%%~%%damage_types%%$$* Deflection|Feather of Blowgun Needle Deflection|
 
