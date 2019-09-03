@@ -36,7 +36,7 @@ var LootGenerator = LootGenerator || (function () {
             if (typeof state['LootGenerator'].mundane == 'undefined') state['LootGenerator'].mundane = null;
             if (typeof state['LootGenerator'].magic == 'undefined') state['LootGenerator'].magic = null;
             if (typeof state['LootGenerator'].spells == 'undefined') state['LootGenerator'].spells = null;
-            adminDialog('Build Database', 'This is your first time using LootGenerator, so you must build your treasure database. '
+            adminDialog('Build Database', 'This is your first time using LootGenerator, so you must build the default treasure database. '
             + '<br><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --setup">Run Setup</a></div>');
         }
         if (typeof state['LootGenerator'].defaults == 'undefined') commandUpgrade();
