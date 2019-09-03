@@ -12,8 +12,8 @@ var LootGenerator = LootGenerator || (function () {
 
     //---- INFO ----//
 
-    var version = '0.2',
-    debugMode = false,
+    var version = '1.0',
+    debugMode = true,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 8px 10px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
         title: 'padding: 0 0 10px 0; color: ##591209; font-size: 1.5em; font-weight: bold; font-variant: small-caps; font-family: "Times New Roman",Times,serif;',
@@ -21,6 +21,7 @@ var LootGenerator = LootGenerator || (function () {
         button: 'background-color: #000; border-width: 0px; border-radius: 5px; padding: 5px 8px; color: #fff; text-align: center;',
         buttonWrapper: 'text-align: center; margin: 10px 0; clear: both;',
         textButton: 'background-color: transparent; border: none; padding: 0; color: #591209; text-decoration: underline;',
+        imgLink: 'background-color: transparent; border: none; padding: 0;text-decoration: none;',
         fullWidth: 'width: 100%; display: block; padding: 12px 0; text-align: center;',
         code: 'font-family: "Courier New", Courier, monospace; padding-bottom: 6px;',
         accent: 'background-color: ##eaeaea;'
@@ -29,10 +30,7 @@ var LootGenerator = LootGenerator || (function () {
     checkInstall = function () {
         if (!_.has(state, 'LootGenerator')) {
             state['LootGenerator'] = state['LootGenerator'] || {};
-            if (typeof state['LootGenerator'].useGems == 'undefined') state['LootGenerator'].useGems = true;
-            if (typeof state['LootGenerator'].useArt == 'undefined') state['LootGenerator'].useArt = true;
-            if (typeof state['LootGenerator'].useMundane == 'undefined') state['LootGenerator'].useMundane = true;
-            if (typeof state['LootGenerator'].useMagic == 'undefined') state['LootGenerator'].useMagic = true;
+            if (typeof state['LootGenerator'].defaults == 'undefined') state['LootGenerator'].defaults = {gems: 'show-gems', art: 'show-art', mundane: 'show-mundane', magic: 'show-magic'};
             if (typeof state['LootGenerator'].gems == 'undefined') state['LootGenerator'].gems = null;
             if (typeof state['LootGenerator'].art == 'undefined') state['LootGenerator'].art = null;
             if (typeof state['LootGenerator'].mundane == 'undefined') state['LootGenerator'].mundane = null;
@@ -41,6 +39,7 @@ var LootGenerator = LootGenerator || (function () {
             adminDialog('Build Database', 'This is your first time using LootGenerator, so you must build your treasure database. '
             + '<br><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --setup">Run Setup</a></div>');
         }
+        if (typeof state['LootGenerator'].defaults == 'undefined') commandUpgrade();
 
         log('--> LootGenerator v' + version + ' <-- Initialized');
 		if (debugMode) {
@@ -65,8 +64,8 @@ var LootGenerator = LootGenerator || (function () {
 					case '--show':
 						commandGenerate(msg);
 						break;
-                    case '--toggle':
-						commandToggle(msg.content);
+                    case '--default':
+						commandSetDefault(msg.content);
 						break;
                     case '--export':
 						commandExport(msg.content);
@@ -95,23 +94,23 @@ var LootGenerator = LootGenerator || (function () {
         if (rm.test(msg.content)) mod = _.find(cmds, function(tmpStr){ return tmpStr.toLowerCase().startsWith('mod:') }).split(':')[1].trim();
         if (rx.test(msg.content)) xtra = _.find(cmds, function(tmpStr){ return tmpStr.toLowerCase().startsWith('incl:') }).split(':')[1].trim();
 
-        type = _.find(cmds, function(tmpStr){ return tmpStr.startsWith('type:') }).trim();
+        type = _.find(cmds, function(tmpStr){ return tmpStr.startsWith('type:') });
         if (type) {
-            type = type.split(':')[1];
+            type = type.trim().split(':')[1];
             if (rd.test(type)) level = _.last(type.split('')); // 1-4 corresponding to CR levels 0-4, 5-10, 11-16 & 17+
             horde = (type.toLowerCase().startsWith('ind')) ? false : true; // Horde or Indiv
+            mod = getMods(mod);
             dieroll = randomInteger(100);
 
-            if (mod.search('no-coins') == -1) coins = generateCoins(modifyRoll(dieroll, 'coins', mod), horde, level);
+            if (mod.coins.search(/(show|less|more)/i) > -1) coins = generateCoins(modifyRoll(dieroll, 'coins', mod.coins), horde, level);
             if (coins != '') loot.push(coins);
 
-            if ((state['LootGenerator'].useMundane && mod.search('no-mundane') == -1) || mod.search(/[show|less|more]\-mundane/gi) >= 0) {
-                treasure.push(generateMundane(modifyRoll(dieroll, 'mundane', mod), horde, level));
-            }
+            if (mod.mundane.search(/(show|less|more)/i) > -1) treasure.push(generateMundane(modifyRoll(dieroll, 'mundane', mod.mundane), horde, level));
+
             if (horde) {
-                if ((state['LootGenerator'].useGems && mod.search('no-gems') == -1) || mod.search(/[show|less|more]\-gems/gi) >= 0) treasure.push(generateGems(modifyRoll(dieroll, 'gems', mod), level));
-                if ((state['LootGenerator'].useArt && mod.search('no-art') == -1) || mod.search(/[show|less|more]\-art/gi) >= 0) treasure.push(generateArt(modifyRoll(dieroll, 'art', mod), level));
-                if ((state['LootGenerator'].useMagic && mod.search('no-magic') == -1) || mod.search(/[show|less|more]\-magic/gi) >= 0) treasure.push(generateMagicItems(modifyRoll(dieroll, 'magic', mod), level));
+                if (mod.gems.search(/(show|less|more)/i) > -1) treasure.push(generateGems(modifyRoll(dieroll, 'gems', mod.gems), level));
+                if (mod.art.search(/(show|less|more)/i) > -1) treasure.push(generateArt(modifyRoll(dieroll, 'art', mod.art), level));
+                if (mod.magic.search(/(show|less|more)/i) > -1) treasure.push(generateMagicItems(modifyRoll(dieroll, 'magic', mod.magic), level));
             }
             if (xtra != '') {
                 xtra = xtra.replace(/\\|\[|\]|\{|\}|\||\%|\$|\#|\@|\|/g, '');
@@ -124,7 +123,6 @@ var LootGenerator = LootGenerator || (function () {
 
             title += (loc) ? ' from ' + loc : '';
             message = (recip) ? recip + ', you found: ' : 'You found: ';
-            if (debugMode) message += '(on die roll ' + dieroll + ') ';
             message += enumerateItems(loot).join(', ');
             showDialog(title, message);
 
@@ -188,6 +186,23 @@ var LootGenerator = LootGenerator || (function () {
         } else {
             adminDialog('Error','No valid treasure level was provided. Please try again.');
         }
+    },
+
+    getMods = function (mods = '') {
+        var args = mods.trim().split(/\s*\,/i), newMods = {};
+        newMods.coins = 'show-coins';
+        newMods.gems = state['LootGenerator'].defaults.gems;
+        newMods.art = state['LootGenerator'].defaults.art;
+        newMods.mundane = state['LootGenerator'].defaults.mundane;
+        newMods.magic = state['LootGenerator'].defaults.magic;
+        _.each(args, function (arg) {
+            if (arg.match(/[no|show|less|more]\-coins/gi)) newMods.coins = arg;
+            if (arg.match(/[no|show|less|more]\-gems/gi)) newMods.gems = arg;
+            if (arg.match(/[no|show|less|more]\-art/gi)) newMods.art = arg;
+            if (arg.match(/[no|show|less|more]\-mundane/gi)) newMods.mundane = arg;
+            if (arg.match(/[no|show|less|more]\-magic/gi)) newMods.magic = arg;
+        });
+        return newMods;
     },
 
     generateCoins = function (index, horde, level) {
@@ -393,7 +408,6 @@ var LootGenerator = LootGenerator || (function () {
     generateMundane = function (index, horde, level) {
         // Returns an array of magic items
         var count, tmpItem, diceExp, tmpArray = [], items = [], err = false;
-        if (debugMode) log('Generating Mundane Items on die roll ' + index + '...');
         if (state['LootGenerator'].mundane) {
             switch (level) {
                 case '1':
@@ -466,6 +480,20 @@ var LootGenerator = LootGenerator || (function () {
                 tmpArray = _.flatten(tmpArray);
 
                 _.each(tmpArray, function(item) {
+                    // Check for custom randomized list
+                    if (item.search(/\$\$/) != -1) {
+                        var newItem = '', opts = item.split('$$');
+                        _.each(opts, function (opt) {
+                            if (opt.search('~') != -1) {
+                                var choices = opt.split('~');
+                                newItem += choices[randomInteger(_.size(choices) - 1)];
+                            } else {
+                                newItem += opt;
+                            }
+                        });
+                        item = newItem;
+                    }
+
                     // Check for item calling internal function (weapons, etc.)
                     if (item.search('%%') != -1) {
                         if (item.search('%%weapons%%') != -1) item = item.replace('%%weapons%%', randomWeapon().toString());
@@ -577,6 +605,20 @@ var LootGenerator = LootGenerator || (function () {
                 tmpArray = _.uniq(tmpArray);
 
                 _.each(tmpArray, function(item) {
+                    // Check for custom randomized list
+                    if (item.search(/\$\$/) != -1) {
+                        var newItem = '', opts = item.split('$$');
+                        _.each(opts, function (opt) {
+                            if (opt.search('~') != -1) {
+                                var choices = opt.split('~');
+                                newItem += choices[randomInteger(_.size(choices) - 1)];
+                            } else {
+                                newItem += opt;
+                            }
+                        });
+                        item = newItem;
+                    }
+
                     // Check for item calling internal function (weapons, etc.)
                     if (item.search('%%') != -1) {
                         if (item.search('%%damage_types%%') != -1) item = item.replace('%%damage_types%%', randomMagic(1, 'damageTypes').toString());
@@ -678,7 +720,6 @@ var LootGenerator = LootGenerator || (function () {
             // Check for and remove unique items
             origItem = _.find(state['LootGenerator'].magic[table], function (uItem) { return uItem.name == tmpItem; });
             if (origItem && origItem.unique) {
-                if (debugMode) tmpItem = '<i>' + tmpItem + '</i>';
                 tmpItems = _.reject(tmpItems, function (oItem) { return origItem.name == oItem.name; });
                 var oldMagic = _.reject(state['LootGenerator'].magic[table], function (oItem) { return origItem.name == oItem.name; });
                 state['LootGenerator'].magic[table] = oldMagic;
@@ -704,28 +745,21 @@ var LootGenerator = LootGenerator || (function () {
         message += '<b style=\'' + styles.code + '\'>&lt;modifications&gt;:</b><br>Optional. Modifications (comma delimited) to the default parameters for generating loot. Possible values are <i>no-, less-, show-,</i> or <i>more-</i> followed by <i>coins, gems, art, mundane,</i> or <i>magic.</i><br>Examples: <i>more-coins</i> and <i>no-magic, less-art</i><br><br>';
         message += '<b style=\'' + styles.code + '\'>&lt;special_item&gt;:</b><br>Optional. One or more special items (comma delimited) to add to the loot.<br><br>';
         message += 'See the <a style="' + styles.textButton + '" href="https://github.com/blawson69/LootGenerator">documentation</a> for complete instructions.';
-        message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --config">Show Config Menu</a></div>';
+        message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --config">Config Menu</a></div>';
         adminDialog('Help Menu', message);
     },
 
     commandConfig = function () {
         // Set default options for loot generation
         var message = '<div style=\'' + styles.title + '\'>Defaults</div>These are the values that will be used if the <span style=\''
-        + styles.code + '\'>--mod</span> parameter is not used during loot generation.';
-        message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --toggle gems" title="Turn '
-        + ((state['LootGenerator'].useGems) ? 'off' : 'on') + ' use of Gems">Gems '
-        + ((state['LootGenerator'].useGems) ? 'ON' : 'OFF') + '</a></div>';
-        message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --toggle art" title="Turn '
-        + ((state['LootGenerator'].useArt) ? 'off' : 'on') + ' use of Art Objects">Art Objects '
-        + ((state['LootGenerator'].useArt) ? 'ON' : 'OFF') + '</a></div>';
-        message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --toggle mundane" title="Turn '
-        + ((state['LootGenerator'].useMundane) ? 'off' : 'on') + ' use of Mundane Items">Mundane Items '
-        + ((state['LootGenerator'].useMundane) ? 'ON' : 'OFF') + '</a></div>';
-        message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --toggle magic" title="Turn '
-        + ((state['LootGenerator'].useMagic) ? 'off' : 'on') + ' use of Magic Items">Magic Items '
-        + ((state['LootGenerator'].useMagic) ? 'ON' : 'OFF') + '</a></div><hr>';
+        + styles.code + '\'>--mod</span> parameter is not used during loot generation.<br><br>';
+        message += '<b>Gems:</b> ' + state['LootGenerator'].defaults.gems + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Gems Default|Show,show-gems|None,no-gems|Less,less-gems|More,more-gems}">✏️</a><br>';
+        message += '<b>Art:</b> ' + state['LootGenerator'].defaults.art + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Art Default|Show,show-art|None,no-art|Less,less-art|More,more-art}">✏️</a><br>';
+        message += '<b>Mundane Items:</b> ' + state['LootGenerator'].defaults.mundane + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Mundane Items Default|Show,show-mundane|None,no-mundane|Less,less-mundane|More,more-mundane}">✏️</a><br>';
+        message += '<b>Magic Items:</b> ' + state['LootGenerator'].defaults.magic + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Magic Items Default|Show,show-magic|None,no-magic|Less,less-magic|More,more-magic}">✏️</a><hr>';
 
-        message += '<div style=\'' + styles.title + '\'>Import/Export</div>Use the export button below to export Magic Items, Mundane Items, and Spells to handouts for customization:';
+        message += '<div style=\'' + styles.title + '\'>Import/Export</div>Use the export button below to export Magic Items, Mundane Items, and Spells to handouts for customization.<br>';
+        message += '<div style=\'' + styles.buttonWrapper + 'color:#c00;\'>⚠️ <i>Warning: This will overwrite any current handouts you may have customized.</i></div>';
         message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --export">Export Data</a></div>';
         message += 'Edit the exported handouts to add your own Items and Spells, then use the import command to update the database.<br><br>';
         message += 'Syntax for importing is as follows (all on one line): <div style=\'' + styles.code
@@ -741,20 +775,19 @@ var LootGenerator = LootGenerator || (function () {
             message += '</ul>';
         }
 
-        message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --help">Show Help Menu</a></div>';
+        message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --help">Help Menu</a></div>';
         adminDialog('', message);
     },
 
-    commandToggle = function (msg) {
-        // Toggle defaults off and on
-        var parms = msg.split(/\s+/i), message = '';
+    commandSetDefault = function (msg) {
+        var parms = msg.split(/\s+/i);
         if (parms[2]) {
-            if (parms[2].search('gems') >= 0) state['LootGenerator'].useGems = !state['LootGenerator'].useGems;
-            if (parms[2].search('art') >= 0) state['LootGenerator'].useArt = !state['LootGenerator'].useArt;
-            if (parms[2].search('mundane') >= 0) state['LootGenerator'].useMundane = !state['LootGenerator'].useMundane;
-            if (parms[2].search('magic') >= 0) state['LootGenerator'].useMagic = !state['LootGenerator'].useMagic;
+            if (parms[2].match(/[no|show|less|more]\-gems/gi)) state['LootGenerator'].defaults.gems = parms[2];
+            if (parms[2].match(/[no|show|less|more]\-art/gi)) state['LootGenerator'].defaults.art = parms[2];
+            if (parms[2].match(/[no|show|less|more]\-mundane/gi)) state['LootGenerator'].defaults.mundane = parms[2];
+            if (parms[2].match(/[no|show|less|more]\-magic/gi)) state['LootGenerator'].defaults.magic = parms[2];
         } else {
-            adminDialog('Toggle Default Error', 'No valid parameters were sent.');
+            adminDialog('Set Default Error', 'No valid parameters were sent.');
         }
         commandConfig();
     },
@@ -951,6 +984,17 @@ var LootGenerator = LootGenerator || (function () {
     },
 
     //---- UTILITY FUNCTIONS ----//
+
+    commandUpgrade = function () {
+        if (typeof state['LootGenerator'].defaults == 'undefined') state['LootGenerator'].defaults = {};
+        state['LootGenerator'].defaults.gems = state['LootGenerator'].useGems ? 'show-gems' : 'no-gems';
+        state['LootGenerator'].defaults.art = state['LootGenerator'].useArt ? 'show-art' : 'no-art';
+        state['LootGenerator'].defaults.mundane = state['LootGenerator'].useMundane ? 'show-mundane' : 'no-mundane';
+        state['LootGenerator'].defaults.magic = state['LootGenerator'].useMagic ? 'show-magic' : 'no-magic';
+
+        adminDialog('Upgrade Complete', 'LootGenerator has been upgraded to expand the default values. Your previous default settings have been converted. '
+        + '<br><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --config">Open Config</a></div>');
+    },
 
     enumerateItems = function (items) {
         // Collects multiple instances into one instance with an item count
