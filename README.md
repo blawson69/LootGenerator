@@ -67,10 +67,10 @@ Note: In keeping with the DMG guidelines, Gems, Art, and Magic Items are *only* 
 ```
 
 ## --config
-Provides an interface for setting defaults for the `--show` command's [`--mod`](#--mod) parameter and for [exporting tables](#--export).
+Provides an interface for setting defaults for the `--show` command's [`--mod`](#--mod) parameter, and for [exporting tables](#--export).
 
 ## --setup
-Prior to use, you must run this function to populate the loot database. This uses tables found in the DMG and PHB.
+Prior to first use, you must run this function to populate the loot database with items found in the treasure tables in the DMG and items from the PHB. After installation, you will receive a dialog with a button for running this command.
 
 ```
 !loot --setup
@@ -101,7 +101,7 @@ The required `--tables` parameter is a comma delimited list of Item tables and/o
 If you are adding to Magic Table A and Spells, use `--tables:Table A,Spells`, etc.
 
 #### Magic & Mundane Items
-Magic & Mundane Items have a specific format that allows a weighted distribution. For instance, Items with a weight of 2 will be twice as likely to be encountered as an item with a weight of 1. The default Items have a weight value based on the d100 roll from the DMG tables, so be aware that adding a large number of new items will skew those weights accordingly.
+Magic & Mundane Items have a specific format that allows a weighted distribution. For instance, Items with a weight of 2 will be twice as likely to be encountered as an item with a weight of 1. The default Magic Items have a weight value based on the d100 roll from the DMG tables, so be aware that adding a large number of new items will skew those weights accordingly.
 
 There are many Magic Items that are unique and can only be found once during any campaign. To indicate this quality for your custom Items, send "unique" as the last parameter of the Magic Item. This item will then be removed from the database after it has been generated.
 
@@ -125,6 +125,8 @@ Examples:
 #### Custom Replacement Variables
 You can use randomization in your own custom items by using $$ around a list of words or phrases separated by a tilde (~). LootGenerator will choose randomly from that list every time the custom item is generated. You may also use any of the built-in replacement variables inside your random options list to give it even more flavor.
 
+Examples:
+
 | Database Entry Name| Generated Loot|
 | ------------- |-------------|
 |Wand of *$$Yawning\~Winking\~Belching$$* |Wand of Winking|
@@ -137,7 +139,7 @@ You can use randomization in your own custom items by using $$ around a list of 
 The Spell tables are not weighted as the Magic Items are, but are a simple list of all available spells that are used to generate spell scrolls. Each level of spell is a comma delimited list on one line with a heading designating the level of the spells in the list. These headings are in ALL CAPS followed by a colon and also on their own line. "CANTRIPS:" or "0 LEVEL:" are allowed for cantrips, while the remainder should be "1ST LEVEL:" and so on.
 
 #### Formatting Guidelines
-Because you could be generating quite a lengthy list of loot items, avoid using commas in your custom Item names. You will notice that default Item names that contain commas in the DMG tables have been modified to remove them. For instance, "Shield, +1" has been changed to "+1 Shield". Also, the use of parenthesis should be minimized. These are used primarily by LootGenerator to denote multiples of items. Three Potions of Healing are generated as "Potion of Healing (3)."
+Because you could be generating quite a lengthy list of loot items, avoid using commas in your custom Item names. You will notice that default Item names that contain commas in the DMG tables have been modified to remove them. For instance, "Shield, +1" has been changed to "+1 Shield". Also, the use of parenthesis should be minimized. These are used primarily by LootGenerator to denote multiples of items. Three Potions of Healing are generated as "Potion of Healing (3)." And, of course, avoid the use of replacement variable characters (%, @, $, ~).
 
 ## --export
 To provide customization options for Magic Items, Mundane Items, and Spells, export and [import](#--import) options are provided. To do this you must first export the data into handouts. This will give you the proper format for your additional items and provides handouts with the proper titles that the import function will look for. *You must run `--setup` before exporting.*
@@ -146,4 +148,4 @@ To provide customization options for Magic Items, Mundane Items, and Spells, exp
 !loot --export
 ```
 
-Note: If you wish to reset the database to start another campaign and you have customized these tables, you can skip the [`--setup` command](#--setup) and simply re-import data from these tables.
+Note: If you wish to reset the database to start another campaign and you have customized any of the tables, you can skip the [`--setup` command](#--setup) and simply re-import data from those tables.
