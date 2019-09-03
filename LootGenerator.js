@@ -13,7 +13,7 @@ var LootGenerator = LootGenerator || (function () {
     //---- INFO ----//
 
     var version = '1.0',
-    debugMode = true,
+    debugMode = false,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 8px 10px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
         title: 'padding: 0 0 10px 0; color: ##591209; font-size: 1.5em; font-weight: bold; font-variant: small-caps; font-family: "Times New Roman",Times,serif;',
@@ -751,8 +751,7 @@ var LootGenerator = LootGenerator || (function () {
 
     commandConfig = function () {
         // Set default options for loot generation
-        var message = '<div style=\'' + styles.title + '\'>Defaults</div>These are the values that will be used if the <span style=\''
-        + styles.code + '\'>--mod</span> parameter is not used during loot generation.<br><br>';
+        var message = '<div style=\'' + styles.title + '\'>Defaults</div>These are the default values for generating Gems, Art, Mundane, and Magic items. These values will be used if not set within the <span style=\'' + styles.code + '\'>--mod</span> parameter during loot generation.<br><br>';
         message += '<b>Gems:</b> ' + state['LootGenerator'].defaults.gems + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Gems Default|Show,show-gems|None,no-gems|Less,less-gems|More,more-gems}">✏️</a><br>';
         message += '<b>Art:</b> ' + state['LootGenerator'].defaults.art + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Art Default|Show,show-art|None,no-art|Less,less-art|More,more-art}">✏️</a><br>';
         message += '<b>Mundane Items:</b> ' + state['LootGenerator'].defaults.mundane + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Mundane Items Default|Show,show-mundane|None,no-mundane|Less,less-mundane|More,more-mundane}">✏️</a><br>';
