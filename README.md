@@ -108,7 +108,7 @@ There are many Magic Items that are unique and can only be found once during any
 The format for Magic & Mundane Items is "weight|name" or "weight|name|unique", each on a separate line in the handout.
 
 #### Built-In Replacement Variables
-The Magic & Mundane Items tables use a built-in replacement syntax that allows randomization of items and the rolling of dice. You will encounter many of these in the [exported handouts](#--export), but only a few (below) will be relevant for use in your custom Items. Words surrounded by %% are randomized selectors, while any die expression such as 1d4 will be within @ signs.
+The Magic & Mundane Items tables use a built-in replacement syntax that allows randomization of item names and the rolling of dice. You will encounter many of these in the [exported handouts](#--export), but only a few (below) will be relevant for use in your custom Items. Words surrounded by %% are randomized selectors, while any die expression such as 1d4 will be within @ signs.
 * **%%damage_types%%** will return a random damage type, such as Acid, Fire, or Necrotic.
 * **%%monster_types%%** will return a random monster type, such as Beast, Dragon, or Giant.
 * **%%swords%%** will return either Shortsword, Longsword, or Greatsword for magic swords.
@@ -116,7 +116,7 @@ The Magic & Mundane Items tables use a built-in replacement syntax that allows r
 
 Examples:
 
-| Database Entry| Generated Loot|
+| Database Entry Name| Generated Loot|
 | ------------- |-------------|
 | *%%swords%%* of Yawning |Longsword of Yawning|
 |Potion of *%%damage_types%%* Breath|Potion of Thunder Breath|
@@ -125,7 +125,7 @@ Examples:
 #### Custom Replacement Variables
 You can use randomization in your own custom items by using $$ around a list of words or phrases separated by a tilde (~). LootGenerator will choose randomly from that list every time the custom item is generated. You may also use any of the built-in replacement variables inside your random options list to give it even more flavor.
 
-| Database Entry| Generated Loot|
+| Database Entry Name| Generated Loot|
 | ------------- |-------------|
 |Wand of *$$Yawning\~Winking\~Belching$$* |Wand of Winking|
 |*$$@1d6+1@ Large~@1d8+2@ Medium~@1d10+3@ Small$$* *%%monster_types%%* Bones|7 Small Humanoid Bones|
