@@ -4,7 +4,10 @@ A Roll20 script for generating random loot
 
 On Github:	https://github.com/blawson69
 Contact me: https://app.roll20.net/users/1781274/ben-l
-Like this script? Buy me a coffee: https://venmo.com/theRealBenLawson
+
+Like this script? Buy me a coffee:
+    https://venmo.com/theRealBenLawson
+    https://paypal.me/theRealBenLawson
 */
 
 var LootGenerator = LootGenerator || (function () {
@@ -12,8 +15,8 @@ var LootGenerator = LootGenerator || (function () {
 
     //---- INFO ----//
 
-    var version = '1.0',
-    debugMode = false,
+    var version = '1.1',
+    debugMode = true,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 8px 10px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
         title: 'padding: 0 0 10px 0; color: ##591209; font-size: 1.5em; font-weight: bold; font-variant: small-caps; font-family: "Times New Roman",Times,serif;',
@@ -85,7 +88,6 @@ var LootGenerator = LootGenerator || (function () {
 
     commandGenerate = function (msg) {
         // Parse command and generate loot
-        //!loot --show --type:Indv1 --loc:Wizard's Chest --recip:Player Name --mod:no-art,no-gems --incl:Special Quest Item
         var dieroll, type, level = 0, horde, mod = '', loc = '', recip = '', message, title = 'Loot', loot = [], treasure = [], coins = '', xtra = '',
         rm = /\-\-mod/gi, rx = /\-\-incl/gi, rl = /\-\-loc/gi, rr = /\-\-recip/gi, rd = /\d+/gi,
         cmds = msg.content.split('--');
@@ -97,8 +99,8 @@ var LootGenerator = LootGenerator || (function () {
         type = _.find(cmds, function(tmpStr){ return tmpStr.startsWith('type:') });
         if (type) {
             type = type.trim().split(':')[1];
-            if (rd.test(type)) level = _.last(type.split('')); // 1-4 corresponding to CR levels 0-4, 5-10, 11-16 & 17+
-            horde = (type.toLowerCase().startsWith('ind')) ? false : true; // Horde or Indiv
+            if (rd.test(type)) level = _.last(type.split(''));
+            horde = (type.toLowerCase().startsWith('ind')) ? false : true;
             mod = getMods(mod);
             dieroll = randomInteger(100);
 
@@ -126,62 +128,61 @@ var LootGenerator = LootGenerator || (function () {
             message += enumerateItems(loot).join(', ');
             showDialog(title, message);
 
-            // Provide access to PurseStrings functions
+            // Provide access to PurseStrings, PotionManager & GearManager
+            var gm_message = '';
             if (typeof PurseStrings !== 'undefined' && coins != '' && coins != '[coins error]') {
-                var psMessage = 'Coins found: ' + coins + '.'
+                gm_message += '<div style=\'' + styles.title + '\'>PurseStrings</div>';
+                gm_message += 'Coins found: ' + coins + '.'
                 + '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!ps --dist ' + coins + '">Distribute to Party Members</a></div>'
-                + '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!ps --add ' + coins + '">Add to <i>selected character</i></a></div>'
-                + '<div style=\'' + styles.sub + '\'>via PurseStrings</div>';
-                adminDialog('', psMessage);
+                + '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!ps --add ' + coins + '">Add to <i>selected</i> character</a></div>';
             }
 
-            // Provide access to PotionManager functions
             var potions = _.filter(loot, function (item) { return item.search('Potion of') >= 0; });
             if (typeof PotionManager !== 'undefined' && potions && _.size(potions) > 0) {
+                if (gm_message != '') gm_message += '<hr>';
+                gm_message += '<div style=\'' + styles.title + '\'>PotionManager</div>';
                 potions = _.uniq(potions);
-                let numText = ( _.size(potions) == 1) ? ' type of <b>Potion</b> was ' : ' types of <b>Potion</b> were ';
-                let pmMessage = _.size(potions) + numText + 'found.<table style="border: 1px; width: 100%;">';
+                let numText = ( _.size(potions) == 1) ? ' type of <b>Potion</b> was ' : ' types of <b>Potions</b> were ';
+                gm_message += _.size(potions) + numText + 'found.<table style="border: 1px; width: 100%;">';
                 _.each(potions, function(potion) {
-                    pmMessage += '<tr><td style="width: 100%"><a style=\'' + styles.textButton + '\' href="!pm --add ' + potion + '">' + potion
+                    gm_message += '<tr><td style="width: 100%"><a style=\'' + styles.textButton + '\' href="!pm --add ' + potion + '">' + potion
                     + '</a></td><td><a style=\'' + styles.textButton + '\' href="!pm --view ' + potion + '">view</a></td></tr>';
                 });
-                pmMessage += '</table><div style=\'' + styles.sub + '\'>via PotionManager</div>';
-                adminDialog('', pmMessage);
+                gm_message += '</table>';
             }
 
-            // Provide access to GearManager functions
             var ag = ['Acid','Alchemist\'s Fire','Antitoxin','Ball Bearings','Poison','Caltrops','Healer\'s Kit','Holy Water','Oil','Philter of Love','Torch'],
             wi = ['Dust of Disappearance','Dust of Dryness','Dust of Sneezing and Choking','Eyes of Charming','Gem of Seeing','Helm of Teleportation','Marvelous Pigments','Oil of Etherealness','Oil of Sharpness','Oil of Slipperiness','Pipes of Haunting','Pipes of the Sewers','Restorative Ointment','Robe of Scintillating Colors','Sovereign Glue','Universal Solvent'];
             var advGear = _.intersection(loot, ag);
             var wondItems = _.intersection(loot, wi);
             if (typeof GearManager !== 'undefined' && ((advGear && _.size(advGear) > 0) || (wondItems && _.size(wondItems) > 0))) {
-                var nText, gmMessage = '';
+                if (gm_message != '') gm_message += '<hr>';
+                gm_message += '<div style=\'' + styles.title + '\'>GearManager</div>';
+                var nText;
                 advGear = _.uniq(advGear);
                 if (advGear && _.size(advGear) > 0) {
                     nText = (_.size(advGear) == 1) ? ' type of <b>Adventuring Gear</b> was ' : ' types of <b>Adventuring Gear</b> were ';
-                    gmMessage += _.size(advGear) + nText + 'found.<table style="border: 1px; width: 100%;">';
+                    gm_message += _.size(advGear) + nText + 'found.<table style="border: 1px; width: 100%;">';
                     _.each(advGear, function(item) {
-                        gmMessage += '<tr><td style="width: 100%"><a style=\'' + styles.textButton + '\' href="!gm --add ' + item + '">' + item
+                        gm_message += '<tr><td style="width: 100%"><a style=\'' + styles.textButton + '\' href="!gm --add ' + item + '">' + item
                         + '</a></td><td><a style=\'' + styles.textButton + '\' href="!gm --view ' + item + '">view</a></td></tr>';
                     });
-                    gmMessage += '</table>';
+                    gm_message += '</table>';
                 }
 
                 if (wondItems && _.size(wondItems) > 0) {
-                    if (gmMessage != '') gmMessage += '<br>';
+                    if (advGear && _.size(advGear) > 0) gm_message += '<br>';
                     wondItems = _.uniq(wondItems);
-                    nText = (_.size(wondItems) == 1) ? ' type of <b>Wondrous Item</b> was ' : ' types of <b>Wondrous Items</b> were ';
-                    gmMessage += _.size(wondItems) + ' type of ' + nText + 'found.<table style="border: 1px; width: 100%;">';
+                    nText = (_.size(wondItems) == 1) ? ' <b>Wondrous Item</b> was ' : ' <b>Wondrous Items</b> were ';
+                    gm_message += _.size(wondItems) + nText + 'found.<table style="border: 1px; width: 100%;">';
                     _.each(wondItems, function(item) {
-                        gmMessage += '<tr><td style="width: 100%"><a style=\'' + styles.textButton + '\' href="!gm --add ' + item + '">' + item
+                        gm_message += '<tr><td style="width: 100%"><a style=\'' + styles.textButton + '\' href="!gm --add ' + item + '">' + item
                         + '</a></td><td><a style=\'' + styles.textButton + '\' href="!gm --view ' + item + '">view</a></td></tr>';
                     });
-                    gmMessage += '</table>';
+                    gm_message += '</table>';
                 }
-
-                gmMessage += '<div style=\'' + styles.sub + '\'>via GearManager</div>';
-                adminDialog('', gmMessage);
             }
+            if (gm_message != '') adminDialog('', gm_message);
 
         } else {
             adminDialog('Error','No valid treasure level was provided. Please try again.');
@@ -864,6 +865,33 @@ var LootGenerator = LootGenerator || (function () {
             spNote.set({ notes: parsedData });
             if (debugMode) log('Spells have exported successfully.');
         }
+
+        var gNote = findObjs({name: 'Loot Generator: Gems', type: 'handout'})[0];
+        if (!gNote) gNote = createObj("handout", {name: 'Loot Generator: Gems'});
+        if (gNote) {
+            parsedData = '';
+            parsedData += '<p>LEVEL 1:</p><p>' + state['LootGenerator'].gems.level1.join(', ') + '</p>';
+            parsedData += '<p>LEVEL 2:</p><p>' + state['LootGenerator'].gems.level2.join(', ') + '</p>';
+            parsedData += '<p>LEVEL 3:</p><p>' + state['LootGenerator'].gems.level3.join(', ') + '</p>';
+            parsedData += '<p>LEVEL 4:</p><p>' + state['LootGenerator'].gems.level4.join(', ') + '</p>';
+            parsedData += '<p>LEVEL 5:</p><p>' + state['LootGenerator'].gems.level5.join(', ') + '</p>';
+            gNote.set({ notes: parsedData });
+            if (debugMode) log('Gems have exported successfully.');
+        }
+
+        var aNote = findObjs({name: 'Loot Generator: Art', type: 'handout'})[0];
+        if (!aNote) aNote = createObj("handout", {name: 'Loot Generator: Art'});
+        if (aNote) {
+            parsedData = '';
+            parsedData += '<p>LEVEL 1:</p><p>' + state['LootGenerator'].art.level1.join(', ') + '</p>';
+            parsedData += '<p>LEVEL 2:</p><p>' + state['LootGenerator'].art.level2.join(', ') + '</p>';
+            parsedData += '<p>LEVEL 3:</p><p>' + state['LootGenerator'].art.level3.join(', ') + '</p>';
+            parsedData += '<p>LEVEL 4:</p><p>' + state['LootGenerator'].art.level4.join(', ') + '</p>';
+            parsedData += '<p>LEVEL 5:</p><p>' + state['LootGenerator'].art.level5.join(', ') + '</p>';
+            aNote.set({ notes: parsedData });
+            if (debugMode) log('Art has exported successfully.');
+        }
+
         adminDialog('Export Complete', 'Your data export has been completed.');
     },
 
@@ -959,6 +987,56 @@ var LootGenerator = LootGenerator || (function () {
                 } else {
                     err.probs.push('One or more handouts do not exist.');
                     err.tables.push('Spells');
+                }
+            }
+
+            if (_.find(tables, function(x) { return x.toLowerCase() == 'gems'; })) {
+                var gNote = findObjs({name: 'Loot Generator: Gems', type: 'handout'})[0];
+                if (gNote) {
+                    gNote.get('notes', function (notes) {
+                        var items = decodeEditorText(notes, {asArray:true}),
+                        levels = [{heading:'LEVEL 1:',level:'level1'}, {heading:'LEVEL 2:',level:'level2'}, {heading:'LEVEL 3:',level:'level3'}, {heading:'LEVEL 4:',level:'level4'}, {heading:'LEVEL 5:',level:'level5'}];
+
+                        _.each(levels, function(level) {
+                            if (_.find(items, function (x) { return x.search(level.heading) >= 0; })) {
+                                let index = _.indexOf(items, level.heading) + 1;
+                                if (items[index] && items[index].trim() != '') {
+                                    oldData = [];
+                                    oldData.push(items[index].split(/,\s*/));
+                                    oldData = _.flatten(oldData);
+                                    state['LootGenerator'].gems[level.level] = oldData;
+                                }
+                            }
+                        });
+                    });
+                } else {
+                    err.probs.push('One or more handouts do not exist.');
+                    err.tables.push('Gems');
+                }
+            }
+
+            if (_.find(tables, function(x) { return x.toLowerCase() == 'art'; })) {
+                var aNote = findObjs({name: 'Loot Generator: Art', type: 'handout'})[0];
+                if (aNote) {
+                    aNote.get('notes', function (notes) {
+                        var items = decodeEditorText(notes, {asArray:true}),
+                        levels = [{heading:'LEVEL 1:',level:'level1'}, {heading:'LEVEL 2:',level:'level2'}, {heading:'LEVEL 3:',level:'level3'}, {heading:'LEVEL 4:',level:'level4'}, {heading:'LEVEL 5:',level:'level5'}];
+
+                        _.each(levels, function(level) {
+                            if (_.find(items, function (x) { return x.search(level.heading) >= 0; })) {
+                                let index = _.indexOf(items, level.heading) + 1;
+                                if (items[index] && items[index].trim() != '') {
+                                    oldData = [];
+                                    oldData.push(items[index].split(/,\s*/));
+                                    oldData = _.flatten(oldData);
+                                    state['LootGenerator'].art[level.level] = oldData;
+                                }
+                            }
+                        });
+                    });
+                } else {
+                    err.probs.push('One or more handouts do not exist.');
+                    err.tables.push('Art');
                 }
             }
         } else {
@@ -1061,33 +1139,9 @@ var LootGenerator = LootGenerator || (function () {
         return t;
     },
 
-    esRE = function (s) {
-        var escapeForRegexp = /(\\|\/|\[|\]|\(|\)|\{|\}|\?|\+|\*|\||\.|\^|\$)/g;
-        return s.replace(escapeForRegexp,"\\$1");
-    },
-
-    HE = (function() {
-        var entities={
-                '<' : '&'+'lt'+';',
-                '>' : '&'+'gt'+';',
-                "'" : '&'+'#39'+';',
-                '@' : '&'+'#64'+';',
-                '{' : '&'+'#123'+';',
-                '|' : '&'+'#124'+';',
-                '}' : '&'+'#125'+';',
-                '[' : '&'+'#91'+';',
-                ']' : '&'+'#93'+';',
-                '"' : '&'+'quot'+';'
-            },
-            re = new RegExp('('+_.map(_.keys(entities),esRE).join('|')+')','g');
-        return function(s){
-            return s.replace(re, function(c){ return entities[c] || c; });
-        };
-    }()),
-
     //---- DEFAULT LOOT VALUES ----//
 
-    GEMS={level1:['Azurite','Banded Agate','Blue Quartz','Eye Agate','Hematite','Lapis Lazuli','Malachite','Moss Agate','Obsidian','Rhodochrosite','Tiger Eye','Turquoise'],level2:['Bloodstone','Carnelian','Chalcedony','Chrysoprase','Citrine','Jasper','Moonstone','Onyx','Quartz','Sardonyx','Star Rose Quartz','Zircon'],level3:['Alexandrite','Aquamarine','Black pearl','Blue spinel','Peridot','Topaz'],level4:['Black Opal','Blue Sapphire','Emerald','Fire Opal','Opal','Star Ruby','Star Sapphire','Yellow Sapphire'],level5:['Black Sapphire','Diamond','Jacinth','Ruby']},
+    GEMS={level1:['Azurite','Banded Agate','Blue Quartz','Eye Agate','Hematite','Lapis Lazuli','Malachite','Moss Agate','Obsidian','Rhodochrosite','Tiger Eye','Turquoise'],level2:['Bloodstone','Carnelian','Chalcedony','Chrysoprase','Citrine','Jasper','Moonstone','Onyx','Quartz','Sardonyx','Star Rose Quartz','Zircon'],level3:['Alexandrite','Aquamarine','Black Pearl','Blue Spinel','Peridot','Topaz'],level4:['Black Opal','Blue Sapphire','Emerald','Fire Opal','Opal','Star Ruby','Star Sapphire','Yellow Sapphire'],level5:['Black Sapphire','Diamond','Jacinth','Ruby']},
     ART={level1:['Silver Ewer','Carved Bone Statuette','Small Gold Bracelet','Cloth-of-Gold Vestments','Black Velvet Mask stitched with Silver Thread','Copper Chalice with Silver Filigree','Pair of Engraved Bone Dice','Small Mirror set in a Painted Wooden Frame','Embroidered Silk Handkerchief','Gold Locket with a Painted Portrait Inside'],level2:['Gold Ring set with Bloodstones','Carved Ivory Statuette','Large Gold Bracelet','Silver Necklace with a Gemstone Pendant','Bronze Crown','Silk Robe with Gold Embroidery','Large Well-Made Tapestry','Brass Mug with Jade Inlay','Box of Turquoise Animal Figurines','Gold Bird Cage with Electrum Filigree'],level3:['Silver Chalice set with Moonstones','Silver-Plated Steel Longsword with Jet set in Hilt','Carved Harp of Exotic Wood with Ivory Inlay and Zircon Gems','Small Gold Idol','Gold Dragon Comb set with Red Garnets as Eyes','Bottle Stopper Cork embossed with Gold Leaf and set with Amethysts','Ceremonial Electrum Dagger with a Black Pearl in the Pommel','Silver and Gold Brooch','Obsidian Statuette with Gold Fittings and Inlay','Painted Gold War Mask'],level4:['Fine Gold Chain set with a Fire Opal','Old Masterpiece Painting','Embroidered Silk and Velvet Mantle set with Numerous Moonstones','Platinum Bracelet set with a Sapphire','Embroidered Glove set with Jewel Chips','Jeweled Anklet','Gold Music Box','Gold Circlet set with Four Aquamarines','Eye Patch with a Mock Eye set in Blue Sapphire and Moonstone','A Necklace String of Small Pink Pearls'],level5:['Jeweled Gold Crown','Jeweled Platinum Ring','Small Gold Statuette set with Rubies','Gold Cup set with Emeralds','Gold Jewelry Box with Platinum Filigree','Painted Gold Child\'s Sarcophagus','Jade Game Board with Solid Gold Playing Pieces','Bejeweled Ivory Drinking Horn with Gold Filigree']},
     MUNDANE={gear:[{weight:45,name:'%%weapons%%'},{weight:35,name:'%%armor%%'},{weight:30,name:'Potion of Healing'},{weight:25,name:'%%ammo%%s (@1d8@)'},{weight:25,name:'Hempen Rope'},{weight:20,name:'Alchemist\'s Fire'},{weight:20,name:'Silk Rope'},{weight:15,name:'Acid'},{weight:15,name:'Caltrops'},{weight:15,name:'Healer\'s Kit'},{weight:15,name:'Tinderbox'},{weight:10,name:'Ball Bearings'},{weight:10,name:'Climber\'s Kit'},{weight:10,name:'Holy Water'},{weight:10,name:'Hooded Lantern'},{weight:10,name:'Torch'},{weight:10,name:'Empty Vial'},{weight:5,name:'Antitoxin'},{weight:5,name:'Bullseye Lantern'},{weight:5,name:'Piton'},{weight:5,name:'Quiver'},{weight:5,name:'Rations (1 day)'},{weight:5,name:'Waterskin'},{weight:5,name:'Signal Whistle'},{weight:1,name:'Abacus'},{weight:1,name:'Backpack'},{weight:1,name:'Bedroll'},{weight:1,name:'Bell'},{weight:1,name:'Blanket'},{weight:1,name:'Block and Tackle'},{weight:1,name:'Glass Bottle'},{weight:1,name:'Candle'},{weight:1,name:'Chain (10 feet)'},{weight:1,name:'Chalk'},{weight:1,name:'Component Pouch'},{weight:1,name:'Crowbar'},{weight:1,name:'Grappling Hook'},{weight:1,name:'Hammer'},{weight:1,name:'Hourglass'},{weight:1,name:'Hunting Trap'},{weight:1,name:'Bottle of Ink'},{weight:1,name:'Ink Pen'},{weight:1,name:'Jug'},{weight:1,name:'Lamp'},{weight:1,name:'Lock & Key'},{weight:1,name:'Lock (no key)'},{weight:1,name:'Magnifying Glass'},{weight:1,name:'Manacles (no key)'},{weight:1,name:'Mess Kit'},{weight:1,name:'Steel Mirror'},{weight:1,name:'Oil'},{weight:1,name:'Sheet of Paper'},{weight:1,name:'Sheet of Parchment'},{weight:1,name:'Perfume'},{weight:1,name:'Poison'},{weight:1,name:'Iron Pot'},{weight:1,name:'Pouch'},{weight:1,name:'Sealing Wax'},{weight:1,name:'Signet Ring'},{weight:1,name:'Soap'},{weight:1,name:'Iron Spikes (@1d10@)'},{weight:1,name:'Spyglass'},{weight:1,name:'Two-person Tent'},{weight:1,name:'Whetsone'},{weight:1,name:'%%instruments%%'},{weight:1,name:'%%tools%%'}],instruments:[{weight:15,name:'A Drum'},{weight:15,name:'A Horn'},{weight:15,name:'A Flute'},{weight:10,name:'A Pan Flute'},{weight:7,name:'A Lute'},{weight:7,name:'A Lyre'},{weight:5,name:'A Viol'},{weight:1,name:'Bagpipes'},{weight:1,name:'A Dulcimer'},{weight:1,name:'A Shawm'},],tools:[{weight:20,name:'Woodcarver\'s Tools'},{weight:15,name:'Thieves\' Tools'},{weight:15,name:'Carpenter\'s Tools'},{weight:15,name:'Cook\'s Utensils'},{weight:10,name:'Alchemist\'s Supplies'},{weight:10,name:'Leatherworker\'s Tools'},{weight:10,name:'Painter\'s Supplies'},{weight:10,name:'Tinker\'s Tools'},{weight:5,name:'Jeweler\'s Tools'},{weight:3,name:'Navigator\'s Tools'},{weight:3,name:'Smith\'s Tools'},{weight:1,name:'Brewer\'s Supplies'},{weight:1,name:'Calligrapher\'s Supplies'},{weight:1,name:'Cartographer\'s Tools'},{weight:5,name:'Cobbler\'s Tools'},{weight:1,name:'Glassblower\'s Tools'},{weight:1,name:'Mason\'s Tools'},{weight:1,name:'Potter\'s Tools'},{weight:1,name:'Weaver\'s Tools'},],ammo:[{weight:25,name:'Arrow'},{weight:10,name:'Crossbow Bolt'},{weight:5,name:'Sling Bullet'},{weight:1,name:'Blowgun Needle'}],lightArmor:[{weight:5,name:'Padded Armor'},{weight:3,name:'Leather Armor'},{weight:1,name:'Studded Leather'}],mediumArmor:[{weight:40,name:'Hide Armor'},{weight:30,name:'Chain Shirt'},{weight:20,name:'Scale Mail'},{weight:7,name:'Breastplate'},{weight:1,name:'Half Plate'}],heavyArmor:[{weight:25,name:'Ring Mail'},{weight:15,name:'Chain Mail'},{weight:5,name:'Splint'},{weight:1,name:'Plate'}],metalArmor:[{weight:30,name:'Chain Shirt'},{weight:20,name:'Scale Mail'},{weight:7,name:'Breastplate'},{weight:1,name:'Half Plate'},{weight:25,name:'Ring Mail'},{weight:15,name:'Chain Mail'},{weight:5,name:'Splint'},{weight:1,name:'Plate'}],leatherArmor:[{weight:5,name:'Padded Armor'},{weight:3,name:'Leather Armor'},{weight:1,name:'Studded Leather'},{weight:40,name:'Hide Armor'}],simpleWeapons:[{weight:25,name:'Club'},{weight:25,name:'Dagger'},{weight:20,name:'Shortbow'},{weight:10,name:'Javelin'},{weight:10,name:'Quarterstaff'},{weight:10,name:'Spear'},{weight:7,name:'Sling'},{weight:7,name:'Mace'},{weight:3,name:'Greatclub'},{weight:3,name:'Handaxe'},{weight:3,name:'Light Crossbow'},{weight:1,name:'Light Hammer'},{weight:1,name:'Sickle'},{weight:1,name:'Dart'}],martialWeapons:[{weight:25,name:'Shortsword'},{weight:20,name:'Battleaxe'},{weight:10,name:'Longbow'},{weight:7,name:'Heavy Crossbow'},{weight:5,name:'Scimitar'},{weight:5,name:'Longsword'},{weight:3,name:'Lance'},{weight:3,name:'Halberd'},{weight:3,name:'Glaive'},{weight:3,name:'Morningstar'},{weight:1,name:'Maul'},{weight:1,name:'Pike'},{weight:1,name:'Rapier'},{weight:1,name:'Trident'},{weight:1,name:'Greataxe'},{weight:1,name:'Greatsword'},{weight:1,name:'War Pick'},{weight:1,name:'Warhammer'},{weight:1,name:'Flail'},{weight:1,name:'Whip'},{weight:1,name:'Blowgun'},{weight:1,name:'Hand Crossbow'},{weight:1,name:'Net'}],silverWeapons:[{weight:20,name:'Silver Shortsword'},{weight:15,name:'Silver Dagger'},{weight:7,name:'Silver Longsword'},{weight:1,name:'Silver Greatsword'},{weight:1,name:'Silver Spear'},{weight:1,name:'Silver Mace'}],swords:[{weight:10,name:'Shortsword'},{weight:5,name:'Longsword'},{weight:1,name:'Greatsword'}],},
     MAGIC={tableA:[{weight:50,name:'Potion of Healing'},{weight:10,name:'%%scroll0%%'},{weight:10,name:'Potion of Climbing'},{weight:20,name:'%%scroll1%%'},{weight:4,name:'%%scroll2%%'},{weight:4,name:'Potion of Greater Healing'},{weight:1,name:'Bag of Holding'},{weight:1,name:'Driftglobe'}],tableB:[{weight:15,name:'Potion of Greater Healing'},{weight:7,name:'Potion of Fire Breath'},{weight:7,name:'Potion of  %%damage_types%% Resistance'},{weight:5,name:'+1 %%ammo%%s (@1d6@)'},{weight:5,name:'Potion of Animal Friendship'},{weight:5,name:'Potion of Hill Giant Strength'},{weight:5,name:'Potion of Growth'},{weight:5,name:'Potion of Water Breathing'},{weight:5,name:'%%scroll2%%'},{weight:5,name:'%%scroll2%%'},{weight:3,name:'Bag of Holding'},{weight:3,name:'Keoghtom\'s Ointment'},{weight:3,name:'Oil of Slipperiness'},{weight:2,name:'Dust of Disappearance'},{weight:2,name:'Dust of Dryness'},{weight:2,name:'Dust of Sneezing And Choking'},{weight:2,name:'Elemental Gem'},{weight:2,name:'Philter of Love'},{weight:1,name:'Alchemy Jug'},{weight:1,name:'Cap of Water Breathing'},{weight:1,name:'Cloak of the Manta Ray'},{weight:1,name:'Driftglobe'},{weight:1,name:'Goggles of Night'},{weight:1,name:'Helm of Comprehending Languages'},{weight:1,name:'Immovable Rod'},{weight:1,name:'Lantern of Revealing'},{weight:1,name:'Mariner\'s %%armor%%'},{weight:1,name:'Mithral %%metal_armor%%'},{weight:1,name:'Potion of Poison'},{weight:1,name:'Ring of Swimming'},{weight:1,name:'Robe of Useful Items'},{weight:1,name:'Rope of Climbing'},{weight:1,name:'Saddle of the Cavalier'},{weight:1,name:'Wand of Magic Detection'},{weight:1,name:'Wand of Secrets'}],tableC:[{weight:15,name:'Potion of Superior Healing'},{weight:7,name:'%%scroll4%%'},{weight:5,name:'+2 %%ammo%%s (@1d6@)'},{weight:5,name:'Potion of Clairvoyance'},{weight:5,name:'Potion of Diminution'},{weight:5,name:'Potion of Gaseous Form'},{weight:5,name:'Potion of Frost Giant Strength'},{weight:5,name:'Potion of Stone Giant Strength'},{weight:5,name:'Potion of Heroism'},{weight:5,name:'Potion of Invulnerability'},{weight:5,name:'Potion of Mind Reading'},{weight:5,name:'%%scroll5%%'},{weight:3,name:'Elixir of Health'},{weight:3,name:'Oil of Etherealness'},{weight:3,name:'Potion of Fire Giant Strength'},{weight:3,name:'Quaal\'s Feather Token'},{weight:3,name:'Scroll of Protection from %%monster_types%%'},{weight:2,name:'Bag of Beans'},{weight:2,name:'Bead of Force'},{weight:1,name:'Chime of Opening'},{weight:1,name:'Decanter of Endless Water'},{weight:1,name:'Eyes of Minute Seeing'},{weight:1,name:'Folding Boat'},{weight:1,name:'Heward\'s Handy Haversack'},{weight:1,name:'Horseshoes of Speed'},{weight:1,name:'Necklace of Fireballs'},{weight:1,name:'Periapt of Health'},{weight:1,name:'Sending Stones'}],tableD:[{weight:20,name:'Potion of Supreme Healing'},{weight:10,name:'Potion of Invisibility'},{weight:10,name:'Potion of Speed'},{weight:10,name:'%%scroll6%%'},{weight:7,name:'%%scroll7%%'},{weight:5,name:'+3 %%ammo%%s (@1d6@)'},{weight:5,name:'Oil of Sharpness'},{weight:5,name:'Potion of Flying'},{weight:5,name:'Potion of Cloud Giant Strength'},{weight:5,name:'Potion of Longevity'},{weight:5,name:'Potion of Vitality'},{weight:5,name:'%%scroll8%%'},{weight:3,name:'Horseshoes of a Zephyr'},{weight:3,name:'Nolzur\'s Marvelous Pigments'},{weight:1,name:'Bag of Devouring'},{weight:1,name:'Portable Hole'}],tableE:[{weight:30,name:'%%scroll8%%'},{weight:25,name:'Potion of Storm Giant Strength',unique:true},{weight:15,name:'Potion of Supreme Healing'},{weight:15,name:'%%scroll9%%'},{weight:8,name:'Universal Solvent',unique:true},{weight:5,name:'Arrow of %%monster_types%% Slaying'},{weight:2,name:'Sovereign Glue',unique:true}],tableF:[{weight:15,name:'+1 %%weapons%%'},{weight:3,name:'+1 Shield'},{weight:3,name:'Sentinel Shield'},{weight:2,name:'Amulet of Proof Against Detection and Location'},{weight:2,name:'Boots of Elvenkind'},{weight:2,name:'Boots of Striding and Springing'},{weight:3,name:'Bracers of Archery'},{weight:2,name:'Brooch of Shielding'},{weight:2,name:'Broom of Flying'},{weight:2,name:'Cloak of Elvenkind'},{weight:2,name:'Cloak of Protection'},{weight:2,name:'Gauntlets of Ogre Power'},{weight:2,name:'Hat of Disguise'},{weight:2,name:'Javelin of Lightning'},{weight:2,name:'Pearl of Power'},{weight:2,name:'+1 Rod of the Pact Keeper'},{weight:2,name:'Slippers of Spider Climbing'},{weight:2,name:'Staff of the Adder'},{weight:2,name:'Staff of the Python'},{weight:2,name:'%%swords%% of Vengeance'},{weight:2,name:'Trident of Fish Command'},{weight:2,name:'Wand of Magic Missiles'},{weight:2,name:'+1 Wand of the War Mage'},{weight:2,name:'Wand of Web'},{weight:2,name:'%%weapons%% of Warning'},{weight:1,name:'Adamantine Armor (Chain Mail)'},{weight:1,name:'Adamantine Armor (Chain Shirt)'},{weight:1,name:'Adamantine Armor (Scale Mail)'},{weight:1,name:'Bag of Tricks (Gray)'},{weight:1,name:'Bag of Tricks (Rust)'},{weight:1,name:'Bag of Tricks (Tan)'},{weight:1,name:'Boots of the Winterlands'},{weight:1,name:'Circlet of Blasting'},{weight:1,name:'Deck of Illusions'},{weight:1,name:'Eversmoking Bottle'},{weight:1,name:'Eyes of Charming'},{weight:1,name:'Eyes of the Eagle'},{weight:1,name:'Figurine of Wondrous Power (Silver Raven)'},{weight:1,name:'Gem of Brightness'},{weight:1,name:'Gloves of Missile Snaring'},{weight:1,name:'Gloves of Swimming and Climbing'},{weight:1,name:'Gloves of Thievery'},{weight:1,name:'Headband of Intellect'},{weight:1,name:'Helm of Telepathy'},{weight:1,name:'Instrument of the Bards (Doss Lute)'},{weight:1,name:'Instrument of the Bards (Fochlucan Bandore)'},{weight:1,name:'Instrument of the Bards (Mac-Fuimidh Cittern)'},{weight:1,name:'Medallion of Thoughts'},{weight:1,name:'Necklace of Adaptation'},{weight:1,name:'Periapt of Wound Closure'},{weight:1,name:'Pipes of Haunting'},{weight:1,name:'Pipes of the Sewers'},{weight:1,name:'Ring of Jumping'},{weight:1,name:'Ring of Mind Shielding'},{weight:1,name:'Ring of Warmth'},{weight:1,name:'Ring of Water Walking'},{weight:1,name:'Quiver of Ehlonna'},{weight:1,name:'Stone of Good Luck'},{weight:1,name:'Wind Fan'},{weight:1,name:'Winged Boots'}],tableG:[{weight:11,name:'+2 %%weapons%%'},{weight:3,name:'Figurine of Wondrous Power (%%figurines%%)'},{weight:1,name:'Adamantine Armor (Breastplate)'},{weight:1,name:'Adamantine Armor (Splint)'},{weight:1,name:'Amulet of Health'},{weight:1,name:'Armor of Vulnerability'},{weight:1,name:'Arrow-Catching Shield'},{weight:1,name:'Belt of Dwarvenkind'},{weight:1,name:'Belt of Hill Giant Strength'},{weight:1,name:'Berserker Axe'},{weight:1,name:'Boots of Levitation'},{weight:1,name:'Boots of Speed'},{weight:1,name:'Bowl of Commanding Water Elementals'},{weight:1,name:'Bracers of Defense'},{weight:1,name:'Brazier of Commanding Fire Elementals'},{weight:1,name:'Cape of the Mountebank'},{weight:1,name:'Censer of Controlling Air Elementals'},{weight:1,name:'+1 Chain Mail'},{weight:1,name:'Armor of Resistance (Chain Mail)'},{weight:1,name:'Armor of Resistance (Chain Shirt)'},{weight:1,name:'+ 1 Chain Shirt'},{weight:1,name:'Cloak of Displacement'},{weight:1,name:'Cloak of the Bat'},{weight:1,name:'Cube of Force'},{weight:1,name:'Daern\'s Instant Fortress'},{weight:1,name:'Dagger of Venom'},{weight:1,name:'Dimensional Shackles'},{weight:1,name:'Dragon Slayer (%%swords%%)'},{weight:1,name:'Elven Chain'},{weight:1,name:'Flame Tongue (%%swords%%)'},{weight:1,name:'Gem of Seeing'},{weight:1,name:'Giant Slayer (%%swords%%)'},{weight:1,name:'Glamoured Studded Leather'},{weight:1,name:'Helm of Teleportation'},{weight:1,name:'Horn of Blasting'},{weight:1,name:'Horn of Valhalla (Silver Or Brass)'},{weight:1,name:'Instrument of the Bards (Canaith Mandolin)'},{weight:1,name:'Instrument ofthe Bards (Cii Lyre)'},{weight:1,name:'Ioun Stone (Awareness)'},{weight:1,name:'Ioun Stone (Protection)'},{weight:1,name:'Ioun Stone (Reserve)'},{weight:1,name:'Ioun Stone (Sustenance)'},{weight:1,name:'Iron Bands of Bilarro'},{weight:1,name:'+1 Leather Armor'},{weight:1,name:'Leather Armor of Resistance'},{weight:1,name:'Mace of Disruption'},{weight:1,name:'Mace of Smiting'},{weight:1,name:'Mace of Terror'},{weight:1,name:'Mantle of Spell Resistance'},{weight:1,name:'Necklace of Prayer Beads (%%beads%%)'},{weight:1,name:'Periapt of Proof Against Poison'},{weight:1,name:'Ring of Animal Influence'},{weight:1,name:'Ring of Evasion'},{weight:1,name:'Ring of Feather Falling'},{weight:1,name:'Ring of Free Action'},{weight:1,name:'Ring of Protection'},{weight:1,name:'Ring of Resistance'},{weight:1,name:'Ring of Spell Storing'},{weight:1,name:'Ring of the Ram'},{weight:1,name:'Ring of X-Ray Vision'},{weight:1,name:'Robe of Eyes'},{weight:1,name:'Rod of Rulership'},{weight:1,name:'+2 Rod of the Pact Keeper'},{weight:1,name:'Rope of Entanglement'},{weight:1,name:'+1 Scale Mail'},{weight:1,name:'Scale Mail of Resistance'},{weight:1,name:'+2 Shield'},{weight:1,name:'Shield of Missile Attraction'},{weight:1,name:'Staff of Charming'},{weight:1,name:'Staff of Healing'},{weight:1,name:'Staff of Swarming Insects'},{weight:1,name:'Staff of the Woodlands'},{weight:1,name:'Staff of Withering'},{weight:1,name:'Stone of Controlling Earth Elementals'},{weight:1,name:'Sun Blade (%%swords%%)'},{weight:1,name:'%%swords%% of Life Stealing'},{weight:1,name:'%%swords%% of Wounding'},{weight:1,name:'Tentacle Rod'},{weight:1,name:'Vicious %%weapons%%'},{weight:1,name:'Wand of Binding'},{weight:1,name:'Wand of Enemy Detection'},{weight:1,name:'Wand of Fear'},{weight:1,name:'Wand of Fireballs'},{weight:1,name:'Wand of Lightning Bolts'},{weight:1,name:'Wand of Paralysis'},{weight:1,name:'+2 Wand of the War Mage'},{weight:1,name:'Wand of Wonder'},{weight:1,name:'Wings of Flying'}],tableH:[{weight:10,name:'+3 %%weapons%%'},{weight:3,name:'Amulet of the Planes',unique:true},{weight:2,name:'Carpet of Flying'},{weight:2,name:'Crystal Ball (Scrying)',unique:true},{weight:2,name:'Ring of Regeneration'},{weight:2,name:'Ring of Shooting Stars'},{weight:2,name:'Ring of Telekinesis',unique:true},{weight:2,name:'Robe of Scintillating Colors'},{weight:2,name:'Robe of Stars'},{weight:2,name:'Rod of Absorption'},{weight:2,name:'Rod of Alertness'},{weight:2,name:'Rod of Security'},{weight:2,name:'+3 Rod of the Pact Keeper'},{weight:2,name:'Scimitar of Speed'},{weight:2,name:'+3 Shield'},{weight:2,name:'Staff of Fire'},{weight:2,name:'Staff of Frost'},{weight:2,name:'Staff of Power'},{weight:2,name:'Staff of Striking'},{weight:2,name:'Staff of Thunder and Lightning'},{weight:2,name:'%%swords%% of Sharpness'},{weight:2,name:'Wand of Polymorph'},{weight:2,name:'+3 Wand of the War Mage'},{weight:1,name:'Adamantine Half Plate'},{weight:1,name:'Adamantine Plate'},{weight:1,name:'Animated Shield'},{weight:1,name:'Belt of Fire Giant Strength'},{weight:1,name:'Belt of Stone Giant Strength'},{weight:1,name:'+1 Breastplate'},{weight:1,name:'Breastplate of Resistance'},{weight:1,name:'Candle of Invocation'},{weight:1,name:'+2 Chain Mail'},{weight:1,name:'+2 Chain Shirt'},{weight:1,name:'Cloak of Arachnida'},{weight:1,name:'Dancing %%swords%%'},{weight:1,name:'Demon Armor'},{weight:1,name:'Dragon Scale Mail'},{weight:1,name:'Dwarven Plate'},{weight:1,name:'Dwarven Thrower'},{weight:1,name:'Efreeti Bottle',unique:true},{weight:1,name:'Figurine of Wondrous Power (Obsidian Steed)'},{weight:1,name:'Frost Brand (%%swords%%)'},{weight:1,name:'Helm of Brilliance'},{weight:1,name:'Horn of Valhalla (Bronze)'},{weight:1,name:'Instrument of the Bards (Anstruth Harp)'},{weight:1,name:'Ioun Stone (Absorption)'},{weight:1,name:'Ioun Stone (Agility)'},{weight:1,name:'Ioun Stone (Fortitude)'},{weight:1,name:'Ioun Stone (Insight)'},{weight:1,name:'Ioun Stone (Intellect)'},{weight:1,name:'Ioun Stone (Leadership)'},{weight:1,name:'Ioun Stone (Strength)'},{weight:1,name:'+2 Leather'},{weight:1,name:'Manual of Bodily Health'},{weight:1,name:'Manual of Gainful Exercise'},{weight:1,name:'Manual of Golems'},{weight:1,name:'Manual of Quickness of Action'},{weight:1,name:'Mirror of Life Trapping',unique:true},{weight:1,name:'Nine Lives Stealer',unique:true},{weight:1,name:'Oathbow'},{weight:1,name:'+2 Scale Mail'},{weight:1,name:'Spellguard Shield',unique:true},{weight:1,name:'+1 Splint'},{weight:1,name:'Armor of Resistance (Splint)'},{weight:1,name:'+1 Studded Leather'},{weight:1,name:'Studded Leather Armor of Resistance'},{weight:1,name:'Tome of Clear Thought'},{weight:1,name:'Tome of Leadership and Influence'},{weight:1,name:'Tome of Understanding'}],tableI:[{weight:5,name:'Defender (%%swords%%)',unique:true},{weight:5,name:'Hammer of Thunderbolts',unique:true},{weight:5,name:'Sword of Answering %%answers%%',unique:true},{weight:3,name:'Holy Avenger (%%swords%%)',unique:true},{weight:3,name:'Ring of Djinni Summoning',unique:true},{weight:3,name:'Ring of Invisibility',unique:true},{weight:3,name:'Ring of Spell Turning',unique:true},{weight:3,name:'Rod of Lordly Might',unique:true},{weight:3,name:'Vorpal %%swords%%',unique:true},{weight:2,name:'Belt of Cloud Giant Strength',unique:true},{weight:2,name:'+2 Breastplate'},{weight:2,name:'+3 Chain Mail'},{weight:2,name:'+3 Chain Shirt'},{weight:2,name:'Cloak of Invisibility',unique:true},{weight:2,name:'Crystal Ball %%crystal_balls%%',unique:true},{weight:2,name:'+ 1 Half Plate'},{weight:2,name:'Iron Flask',unique:true},{weight:2,name:'+3 Leather'},{weight:2,name:'+1 Plate'},{weight:2,name:'Robe of the Archmagi',unique:true},{weight:2,name:'Rod of Resurrection',unique:true},{weight:2,name:'+1 Scale Mail'},{weight:2,name:'Scarab of Protection',unique:true},{weight:2,name:'+2 Splint'},{weight:2,name:'+2 Studded Leather'},{weight:2,name:'Well of Many Worlds',unique:true},{weight:1,name:'%%magic_armor%%'},{weight:1,name:'Armor of Invulnerability',unique:true},{weight:1,name:'Belt of Storm Giant Strength',unique:true},{weight:1,name:'Cubic Gate',unique:true},{weight:1,name:'Deck of Many Things',unique:true},{weight:1,name:'Efreeti Chain',unique:true},{weight:1,name:'Half Plate Armor of Resistance'},{weight:1,name:'Horn of Valhalla (Iron)',unique:true},{weight:1,name:'Instrument of the Bards (Ollamh Harp)',unique:true},{weight:1,name:'Ioun Stone (Greater Absorption)',unique:true},{weight:1,name:'Ioun Stone (Mastery)',unique:true},{weight:1,name:'Ioun Stone (Regeneration)',unique:true},{weight:1,name:'Plate Armor of Etherealness',unique:true},{weight:1,name:'Plate Armor of Resistance'},{weight:1,name:'Ring of Air Elemental Command',unique:true},{weight:1,name:'Ring of Earth Elemental Command',unique:true},{weight:1,name:'Ring of Fire Elemental Command',unique:true},{weight:1,name:'Ring of Three Wishes',unique:true},{weight:1,name:'Ring of Water Elemental Command',unique:true},{weight:1,name:'Sphere of Annihilation',unique:true},{weight:1,name:'Talisman of Pure Good',unique:true},{weight:1,name:'Talisman of the Sphere',unique:true},{weight:1,name:'Talisman of Ultimate Evil',unique:true},{weight:1,name:'Tome of the Stilled Tongue',unique:true}],magicArmor:[{weight:2,name:'+2 Half Plate'},{weight:2,name:'+2 Plate'},{weight:2,name:'+3 Studded Leather'},{weight:2,name:'+3 Breastplate'},{weight:2,name:'+3 Splint'},{weight:1,name:'+3 Half Plate'},{weight:1,name:'+3 Plate'}],figurines:[{weight:1,name:'Bronze Griffon'},{weight:1,name:'Ebony Fly'},{weight:1,name:'Golden Lions'},{weight:1,name:'Ivory Goats'},{weight:1,name:'Marble Elephant'},{weight:2,name:'Onyx Dog'},{weight:1,name:'Serpentine Owl'}],crystalBalls:[{weight:1,name:'of Mind Reading',unique:true},{weight:2,name:'of Telepathy',unique:true},{weight:1,name:'of True Seeing',unique:true},],answers:[{weight:1,name:'Answerer',unique:true},{weight:1,name:'Back Talker',unique:true},{weight:1,name:'Concluder',unique:true},{weight:1,name:'Last Quip',unique:true},{weight:1,name:'Rebutter',unique:true},{weight:1,name:'Replier',unique:true},{weight:1,name:'Retorter',unique:true},{weight:1,name:'Scather',unique:true},{weight:1,name:'Squelcher',unique:true}],monsterTypes:[{weight:20,name:'Humanoid'},{weight:15,name:'Beast'},{weight:10,name:'Giant'},{weight:10,name:'Dragon'},{weight:5,name:'Fey'},{weight:5,name:'Undead'},{weight:3,name:'Fiend'},{weight:3,name:'Monstrosity'},{weight:2,name:'Construct'},{weight:1,name:'Aberration'},{weight:1,name:'Celestial'},{weight:1,name:'Elemental'},{weight:1,name:'Ooze'},{weight:1,name:'Plant'}],damageTypes:[{weight:6,name:'Acid'},{weight:10,name:'Cold'},{weight:10,name:'Fire'},{weight:1,name:'Force'},{weight:3,name:'Lightning'},{weight:2,name:'Necrotic'},{weight:5,name:'Poison'},{weight:1,name:'Radiant'},{weight:1,name:'Thunder'}],beads:[{weight:6,name:'Blessing'},{weight:6,name:'Curing'},{weight:4,name:'Favor'},{weight:2,name:'Smiting'},{weight:1,name:'Summons'},{weight:1,name:'Wind walking'}]},

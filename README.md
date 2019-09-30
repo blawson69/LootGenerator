@@ -4,7 +4,7 @@ This [Roll20](http://roll20.net/) script generates loot according to the treasur
 
 As an improvement to the basic treasure tables, Loot Generator also includes a Mundane Items category in addition to the default Coins, Gems, Art, and Magic Items categories. The default Mundane Items include Adventuring Gear from the Player's Handbook.
 
-Loot Generator also allows for adding custom Magic Items, Mundane Items and Spells.
+Loot Generator also allows for adding custom items to all categories.
 
 ## Script Integration
 Loot Generator can detect the presence of my [PurseStrings](https://github.com/blawson69/PurseStrings),  [PotionManager](https://github.com/blawson69/PotionManager), and  [GearManager](https://github.com/blawson69/GearManager) scripts, and will provide the GM a link for distributing or adding coins and items as needed.
@@ -92,7 +92,7 @@ Displays help for formatting the [--show](#--show) command and a link to display
 ## --import
 Importing gives you the ability to customize your Magic Items, Mundane Items, and Spells lists. Once you have [exported](#--export) the necessary tables you can edit them to your liking. Leave any original items you wish to use and add your own according to the guidelines below.
 
-The required `--tables` parameter is a comma delimited list of Item tables and/or Spells handouts to which you have made changes. The options are *Table A, Table B, Table C, Table D, Table E, Table F, Table G, Table H, Table I, Mundane*, and *Spells*. If you wish to only modify the Spells, send
+The required `--tables` parameter is a comma delimited list of Item tables and/or Spells handouts to which you have made changes. The options are *Table A, Table B, Table C, Table D, Table E, Table F, Table G, Table H, Table I, Mundane, Gems, Art*, and *Spells*. If you wish to only modify the Spells, send
 
 ```
 !loot --import --tables:Spells
@@ -137,6 +137,9 @@ Examples:
 
 #### Spells
 The Spell tables are not weighted as the Magic Items are, but are a simple list of all available spells that are used to generate spell scrolls. Each level of spell is a comma delimited list on one line with a heading designating the level of the spells in the list. These headings are in ALL CAPS followed by a colon and also on their own line. "CANTRIPS:" or "0 LEVEL:" are allowed for cantrips, while the remainder should be "1ST LEVEL:" and so on.
+
+#### Gems and Art
+As with the Spell tables, these are lists of items based on the DMG tables. There are five levels with the headings in all caps followed by a colon. First level has the heading of "LEVEL 1:" and so on.
 
 #### Formatting Guidelines
 Because you could be generating quite a lengthy list of loot items, avoid using commas in your custom Item names. You will notice that default Item names that contain commas in the DMG tables have been modified to remove them. For instance, "Shield, +1" has been changed to "+1 Shield". Also, the use of parenthesis should be minimized. These are used primarily by LootGenerator to denote multiples of items. Three Potions of Healing are generated as "Potion of Healing (3)." And, of course, avoid the use of replacement variable characters (%, @, $, ~).
