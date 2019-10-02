@@ -16,7 +16,7 @@ var LootGenerator = LootGenerator || (function () {
     //---- INFO ----//
 
     var version = '1.1',
-    debugMode = true,
+    debugMode = false,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 8px 10px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
         title: 'padding: 0 0 10px 0; color: ##591209; font-size: 1.5em; font-weight: bold; font-variant: small-caps; font-family: "Times New Roman",Times,serif;',
