@@ -15,15 +15,16 @@ var LootGenerator = LootGenerator || (function () {
 
     //---- INFO ----//
 
-    var version = '1.1',
+    var version = '1.2',
     debugMode = false,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 8px 10px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
         title: 'padding: 0 0 10px 0; color: ##591209; font-size: 1.5em; font-weight: bold; font-variant: small-caps; font-family: "Times New Roman",Times,serif;',
-        sub: 'font-size: 0.75em; text-align: right;',
+        subtitle: 'margin-top: -4px; padding-bottom: 4px; color: #666; font-size: 1.125em; font-variant: small-caps;',
         button: 'background-color: #000; border-width: 0px; border-radius: 5px; padding: 5px 8px; color: #fff; text-align: center;',
         buttonWrapper: 'text-align: center; margin: 10px 0; clear: both;',
         textButton: 'background-color: transparent; border: none; padding: 0; color: #591209; text-decoration: underline;',
+        infoLink: 'background-color: transparent; border: none; padding: 0; color: #591209; text-decoration: none; font-family: Webdings;',
         imgLink: 'background-color: transparent; border: none; padding: 0;text-decoration: none;',
         fullWidth: 'width: 100%; display: block; padding: 12px 0; text-align: center;',
         code: 'font-family: "Courier New", Courier, monospace; padding-bottom: 6px;',
@@ -43,6 +44,16 @@ var LootGenerator = LootGenerator || (function () {
             + '<br><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --setup">Run Setup</a></div>');
         }
         if (typeof state['LootGenerator'].defaults == 'undefined') commandUpgrade();
+        if ((typeof PotionManager !== 'undefined' && (typeof PotionManager.version == 'undefined' || PotionManager.version < 0.3)) || (typeof GearManager !== 'undefined' && (typeof GearManager.version == 'undefined' || GearManager.version < 0.4))) {
+            var errs = [];
+            if (typeof PotionManager !== 'undefined' && (typeof PotionManager.version == 'undefined' || PotionManager.version < 0.3)) errs.push('PotionManager');
+            if (typeof GearManager !== 'undefined' && (typeof GearManager.version == 'undefined' || GearManager.version < 0.4))  errs.push('GearManager');
+            var gm_message = '<div style=\'' + styles.title + 'color: #c00;\'>⚠️ Upgrade Needed!</div>';
+            gm_message += 'In order to use ' + errs.join(' and ') + ' with LootGenerator, you <b>must</b> upgrade those scripts to the newest version!<br>';
+            if (_.find(errs, function (x) { return x == 'PotionManager'; })) gm_message += '<br><a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/PotionManager" target="_blank">Download PotionManager v0.3+</a>';
+            if (_.find(errs, function (x) { return x == 'GearManager'; })) gm_message += '<br><a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/GearManager" target="_blank">Download GearManager v0.4+</a>.';
+            adminDialog('', gm_message);
+        }
 
         log('--> LootGenerator v' + version + ' <-- Initialized');
 		if (debugMode) {
@@ -76,6 +87,12 @@ var LootGenerator = LootGenerator || (function () {
                     case '--import':
 						commandImport(msg.content);
 						break;
+                    case '--view-potion':
+						commandView(msg.content, 'potion');
+						break;
+                    case '--view-gear':
+						commandView(msg.content, 'gear');
+						break;
 					case '--help':
                     default:
 						commandHelp();
@@ -90,7 +107,7 @@ var LootGenerator = LootGenerator || (function () {
         // Parse command and generate loot
         var dieroll, type, level = 0, horde, mod = '', loc = '', recip = '', message, title = 'Loot', loot = [], treasure = [], coins = '', xtra = '',
         rm = /\-\-mod/gi, rx = /\-\-incl/gi, rl = /\-\-loc/gi, rr = /\-\-recip/gi, rd = /\d+/gi,
-        cmds = msg.content.split('--');
+        cmds = msg.content.split(/\s+\-\-/);
         if (rl.test(msg.content)) loc = _.find(cmds, function(tmpStr){ return tmpStr.toLowerCase().startsWith('loc:') }).split(':')[1].trim();
         if (rr.test(msg.content)) recip = _.find(cmds, function(tmpStr){ return tmpStr.toLowerCase().startsWith('recip:') }).split(':')[1].trim();
         if (rm.test(msg.content)) mod = _.find(cmds, function(tmpStr){ return tmpStr.toLowerCase().startsWith('mod:') }).split(':')[1].trim();
@@ -137,55 +154,85 @@ var LootGenerator = LootGenerator || (function () {
                 + '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!ps --add ' + coins + '">Add to <i>selected</i> character</a></div>';
             }
 
-            var potions = _.filter(loot, function (item) { return item.search('Potion of') >= 0; });
-            if (typeof PotionManager !== 'undefined' && potions && _.size(potions) > 0) {
-                if (gm_message != '') gm_message += '<hr>';
-                gm_message += '<div style=\'' + styles.title + '\'>PotionManager</div>';
-                potions = _.uniq(potions);
-                let numText = ( _.size(potions) == 1) ? ' type of <b>Potion</b> was ' : ' types of <b>Potions</b> were ';
-                gm_message += _.size(potions) + numText + 'found.<table style="border: 1px; width: 100%;">';
-                _.each(potions, function(potion) {
-                    gm_message += '<tr><td style="width: 100%"><a style=\'' + styles.textButton + '\' href="!pm --add ' + potion + '">' + potion
-                    + '</a></td><td><a style=\'' + styles.textButton + '\' href="!pm --view ' + potion + '">view</a></td></tr>';
-                });
-                gm_message += '</table>';
-            }
-
-            var ag = ['Acid','Alchemist\'s Fire','Antitoxin','Ball Bearings','Poison','Caltrops','Healer\'s Kit','Holy Water','Oil','Philter of Love','Torch'],
-            wi = ['Dust of Disappearance','Dust of Dryness','Dust of Sneezing and Choking','Eyes of Charming','Gem of Seeing','Helm of Teleportation','Marvelous Pigments','Oil of Etherealness','Oil of Sharpness','Oil of Slipperiness','Pipes of Haunting','Pipes of the Sewers','Restorative Ointment','Robe of Scintillating Colors','Sovereign Glue','Universal Solvent'];
-            var advGear = _.intersection(loot, ag);
-            var wondItems = _.intersection(loot, wi);
-            if (typeof GearManager !== 'undefined' && ((advGear && _.size(advGear) > 0) || (wondItems && _.size(wondItems) > 0))) {
-                if (gm_message != '') gm_message += '<hr>';
-                gm_message += '<div style=\'' + styles.title + '\'>GearManager</div>';
-                var nText;
-                advGear = _.uniq(advGear);
-                if (advGear && _.size(advGear) > 0) {
-                    nText = (_.size(advGear) == 1) ? ' type of <b>Adventuring Gear</b> was ' : ' types of <b>Adventuring Gear</b> were ';
-                    gm_message += _.size(advGear) + nText + 'found.<table style="border: 1px; width: 100%;">';
-                    _.each(advGear, function(item) {
-                        gm_message += '<tr><td style="width: 100%"><a style=\'' + styles.textButton + '\' href="!gm --add ' + item + '">' + item
-                        + '</a></td><td><a style=\'' + styles.textButton + '\' href="!gm --view ' + item + '">view</a></td></tr>';
+            if (typeof PotionManager !== 'undefined') {
+                var loot_potions = _.filter(loot, function (item) { return item.search('Potion of') >= 0; });
+                if (loot_potions) loot_potions = _.uniq(loot_potions);
+                var pm_potions = _.pluck(PotionManager.getPotions(), 'name');
+                var potions = _.intersection(loot_potions, pm_potions);
+                if (potions && _.size(potions) > 0) {
+                    if (gm_message != '') gm_message += '<hr>';
+                    gm_message += '<div style=\'' + styles.title + '\'>PotionManager</div>';
+                    let numText = ( _.size(potions) == 1) ? ' type of <b>Potion</b> was ' : ' types of <b>Potions</b> were ';
+                    gm_message += _.size(potions) + numText + 'found.<table style="border: 1px; width: 100%;">';
+                    _.each(potions, function(potion) {
+                        gm_message += '<tr><td style="width: 100%"><a style=\'' + styles.textButton + '\' href="!pm --add ' + potion + '" title="Give to selected character">' + potion
+                        + '</a></td><td><a style=\'' + styles.infoLink + '\' href="!loot --view-potion ' + potion + '" title="View ' + potion + ' info">i</a></td></tr>';
                     });
                     gm_message += '</table>';
                 }
+            }
 
-                if (wondItems && _.size(wondItems) > 0) {
-                    if (advGear && _.size(advGear) > 0) gm_message += '<br>';
-                    wondItems = _.uniq(wondItems);
-                    nText = (_.size(wondItems) == 1) ? ' <b>Wondrous Item</b> was ' : ' <b>Wondrous Items</b> were ';
-                    gm_message += _.size(wondItems) + nText + 'found.<table style="border: 1px; width: 100%;">';
-                    _.each(wondItems, function(item) {
-                        gm_message += '<tr><td style="width: 100%"><a style=\'' + styles.textButton + '\' href="!gm --add ' + item + '">' + item
-                        + '</a></td><td><a style=\'' + styles.textButton + '\' href="!gm --view ' + item + '">view</a></td></tr>';
-                    });
-                    gm_message += '</table>';
+            if (typeof GearManager !== 'undefined') {
+                var ag = _.pluck(GearManager.getGear('Adventuring Gear'), 'name');
+                var wi = _.pluck(GearManager.getGear('Wondrous Items'), 'name');
+                var advGear = _.intersection(loot, ag);
+                var wondItems = _.intersection(loot, wi);
+
+                if ((advGear && _.size(advGear) > 0) || (wondItems && _.size(wondItems) > 0)) {
+                    if (gm_message != '') gm_message += '<hr>';
+                    gm_message += '<div style=\'' + styles.title + '\'>GearManager</div>';
+                    var nText;
+                    advGear = _.uniq(advGear);
+
+                    if (advGear && _.size(advGear) > 0) {
+                        nText = (_.size(advGear) == 1) ? ' type of <b>Adventuring Gear</b> was ' : ' types of <b>Adventuring Gear</b> were ';
+                        gm_message += _.size(advGear) + nText + 'found.<table style="border: 1px; width: 100%;">';
+                        _.each(advGear, function(item) {
+                            gm_message += '<tr><td style="width: 100%"><a style=\'' + styles.textButton + '\' href="!gm --add ' + item + '" title="Give to selected character">' + item
+                            + '</a></td><td><a style=\'' + styles.infoLink + '\' href="!loot --view-gear ' + item + '" title="View ' + item + ' info">i</a></td></tr>';
+                        });
+                        gm_message += '</table>';
+                    }
+
+                    if (wondItems && _.size(wondItems) > 0) {
+                        if (advGear && _.size(advGear) > 0) gm_message += '<br>';
+                        wondItems = _.uniq(wondItems);
+                        nText = (_.size(wondItems) == 1) ? ' <b>Wondrous Item</b> was ' : ' <b>Wondrous Items</b> were ';
+                        gm_message += _.size(wondItems) + nText + 'found.<table style="border: 1px; width: 100%;">';
+                        _.each(wondItems, function(item) {
+                            gm_message += '<tr><td style="width: 100%"><a style=\'' + styles.textButton + '\' href="!gm --add ' + item + '" title="Give to selected character">' + item
+                            + '</a></td><td><a style=\'' + styles.infoLink + '\' href="!loot --view-gear ' + item + '" title="View ' + item + ' info">i</a></td></tr>';
+                        });
+                        gm_message += '</table>';
+                    }
                 }
             }
             if (gm_message != '') adminDialog('', gm_message);
 
         } else {
             adminDialog('Error','No valid treasure level was provided. Please try again.');
+        }
+    },
+
+    commandView = function (msg, type = '') {
+        var name = msg.replace(/\!loot\s+\-\-view\-(potion|gear)/i, '').trim();
+        if (type == 'potion' && typeof PotionManager !== 'undefined') {
+            var potion = _.findWhere(PotionManager.getPotions(), {name: name});
+            if (potion) {
+                adminDialog(potion.name, potion.content.replace(/\n/g, '<br>').replace(/\[{2}([^\]]*)\]{2}/g, '<span style=\'color: #c00;\'>$1</span>'));
+            } else {
+                adminDialog('Error', name + ' is not a valid potion.');
+            }
+        } else if (type == 'gear' && typeof GearManager !== 'undefined') {
+            var item = _.findWhere(GearManager.getGear(), {name: name});
+            if (item) {
+                var category = '<div style="' + styles.subtitle + '">' + ((item.category == "Adventuring Gear") ? item.category : "Wondrous Item") + '</div>';
+                adminDialog(item.name, category + item.content.replace(/\n/g, '<br>').replace(/\[{2}([^\]]*)\]{2}/g, '<span style=\'color: #c00;\'>$1</span>'));
+            } else {
+                adminDialog('Error', name + ' is not a valid item.');
+            }
+        } else {
+            adminDialog('Error', name + ' is not a valid potion/item, or the proper script is not installed.');
         }
     },
 
@@ -752,31 +799,42 @@ var LootGenerator = LootGenerator || (function () {
 
     commandConfig = function () {
         // Set default options for loot generation
-        var message = '<div style=\'' + styles.title + '\'>Defaults</div>These are the default values for generating Gems, Art, Mundane, and Magic items. These values will be used if not set within the <span style=\'' + styles.code + '\'>--mod</span> parameter during loot generation.<br><br>';
-        message += '<b>Gems:</b> ' + state['LootGenerator'].defaults.gems + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Gems Default|Show,show-gems|None,no-gems|Less,less-gems|More,more-gems}">✏️</a><br>';
-        message += '<b>Art:</b> ' + state['LootGenerator'].defaults.art + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Art Default|Show,show-art|None,no-art|Less,less-art|More,more-art}">✏️</a><br>';
-        message += '<b>Mundane Items:</b> ' + state['LootGenerator'].defaults.mundane + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Mundane Items Default|Show,show-mundane|None,no-mundane|Less,less-mundane|More,more-mundane}">✏️</a><br>';
-        message += '<b>Magic Items:</b> ' + state['LootGenerator'].defaults.magic + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Magic Items Default|Show,show-magic|None,no-magic|Less,less-magic|More,more-magic}">✏️</a><hr>';
+        if ((typeof PotionManager !== 'undefined' && (typeof PotionManager.version == 'undefined' || PotionManager.version < 0.3)) || (typeof GearManager !== 'undefined' && (typeof GearManager.version == 'undefined' || GearManager.version < 0.4))) {
+            var errs = [];
+            if (typeof PotionManager !== 'undefined' && (typeof PotionManager.version == 'undefined' || PotionManager.version < 0.3)) errs.push('PotionManager');
+            if (typeof GearManager !== 'undefined' && (typeof GearManager.version == 'undefined' || GearManager.version < 0.4))  errs.push('GearManager');
+            var gm_message = '<div style=\'' + styles.title + 'color: #c00;\'>⚠️ Upgrade Needed!</div>';
+            gm_message += 'In order to use ' + errs.join(' and ') + ' with LootGenerator, you <b>must</b> upgrade those scripts to the newest version!<br>';
+            if (_.find(errs, function (x) { return x == 'PotionManager'; })) gm_message += '<br><a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/PotionManager" target="_blank">Download PotionManager v0.3+</a>';
+            if (_.find(errs, function (x) { return x == 'GearManager'; })) gm_message += '<br><a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/GearManager" target="_blank">Download GearManager v0.4+</a>.';
+            adminDialog('', gm_message);
+        } else {
+            var message = '<div style=\'' + styles.title + '\'>Defaults</div>These are the default values for generating Gems, Art, Mundane, and Magic items. These values will be used if not set within the <span style=\'' + styles.code + '\'>--mod</span> parameter during loot generation.<br><br>';
+            message += '<b>Gems:</b> ' + state['LootGenerator'].defaults.gems + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Gems Default|Show,show-gems|None,no-gems|Less,less-gems|More,more-gems}">✏️</a><br>';
+            message += '<b>Art:</b> ' + state['LootGenerator'].defaults.art + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Art Default|Show,show-art|None,no-art|Less,less-art|More,more-art}">✏️</a><br>';
+            message += '<b>Mundane Items:</b> ' + state['LootGenerator'].defaults.mundane + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Mundane Items Default|Show,show-mundane|None,no-mundane|Less,less-mundane|More,more-mundane}">✏️</a><br>';
+            message += '<b>Magic Items:</b> ' + state['LootGenerator'].defaults.magic + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Magic Items Default|Show,show-magic|None,no-magic|Less,less-magic|More,more-magic}">✏️</a><hr>';
 
-        message += '<div style=\'' + styles.title + '\'>Import/Export</div>Use the export button below to export Magic Items, Mundane Items, and Spells to handouts for customization.<br>';
-        message += '<div style=\'' + styles.buttonWrapper + 'color:#c00;\'>⚠️ <i>Warning: This will overwrite any current handouts you may have customized.</i></div>';
-        message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --export">Export Data</a></div>';
-        message += 'Edit the exported handouts to add your own Items and Spells, then use the import command to update the database.<br><br>';
-        message += 'Syntax for importing is as follows (all on one line): <div style=\'' + styles.code
-        + '\'>!loot --import --tables:&lt;table_name&gt;</div>';
-        message += '<b style=\'' + styles.code + '\'>&lt;table_name&gt;:</b><br>Mandatory. Indicates which handouts (comma delimited) to import. Available values are <i>Table A, Table B, Table C, Table D, Table E, Table F, Table G, Table H, Table I</i> for Magic Item tables; <i>Mundane</i> for Mundane Items, and <i>Spells</i> for Spells.<br><br>';
-        message += 'See the <a style="' + styles.textButton + '" href="https://github.com/blawson69/LootGenerator">documentation</a> for complete instructions.';
+            message += '<div style=\'' + styles.title + '\'>Import/Export</div>Use the export button below to export Gems, Art, Magic Items, Mundane Items, and Spells to handouts for customization.<br>';
+            message += '<div style=\'' + styles.buttonWrapper + 'color:#c00;\'>⚠️ <i>Warning: This will overwrite any current handouts you may have customized.</i></div>';
+            message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --export">Export Data</a></div>';
+            message += 'Edit the exported handouts to add your own Items and Spells, then use the import command to update the database.<br><br>';
+            message += 'Syntax for importing is as follows (all on one line): <div style=\'' + styles.code
+            + '\'>!loot --import --tables:&lt;table_name&gt;</div>';
+            message += '<b style=\'' + styles.code + '\'>&lt;table_name&gt;:</b><br>Mandatory. Indicates which handouts (comma delimited) to import. Available values are <i>Gems, Art, Table A, Table B, Table C, Table D, Table E, Table F, Table G, Table H, Table I</i> for Magic Item tables; <i>Mundane</i> for Mundane Items, and <i>Spells</i> for Spells.<br><br>';
+            message += 'See the <a style="' + styles.textButton + '" href="https://github.com/blawson69/LootGenerator">documentation</a> for complete instructions.';
 
-        if (typeof PurseStrings !== 'undefined' || typeof PotionManager !== 'undefined' || typeof GearManager !== 'undefined') {
-            message += '<hr><div style=\'' + styles.title + '\'>Script Integration</div>Commands for relevant loot items will be generated for following installed scripts:<ul>';
-            if (typeof PurseStrings !== 'undefined') message += '<li>PurseStrings</li>';
-            if (typeof PotionManager !== 'undefined') message += '<li>PotionManager</li>';
-            if (typeof GearManager !== 'undefined') message += '<li>GearManager</li>';
-            message += '</ul>';
+            if (typeof PurseStrings !== 'undefined' || typeof PotionManager !== 'undefined' || typeof GearManager !== 'undefined') {
+                message += '<hr><div style=\'' + styles.title + '\'>Script Integration</div>Commands for relevant loot items will be generated for following installed scripts:<ul>';
+                if (typeof PurseStrings !== 'undefined') message += '<li>PurseStrings</li>';
+                if (typeof PotionManager !== 'undefined') message += '<li>PotionManager</li>';
+                if (typeof GearManager !== 'undefined') message += '<li>GearManager</li>';
+                message += '</ul>';
+            }
+
+            message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --help">Help Menu</a></div>';
+            adminDialog('', message);
         }
-
-        message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --help">Help Menu</a></div>';
-        adminDialog('', message);
     },
 
     commandSetDefault = function (msg) {
