@@ -15,19 +15,21 @@ var LootGenerator = LootGenerator || (function () {
 
     //---- INFO ----//
 
-    var version = '1.2',
+    var version = '2.0',
     debugMode = false,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 8px 10px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
-        title: 'padding: 0 0 10px 0; color: ##591209; font-size: 1.5em; font-weight: bold; font-variant: small-caps; font-family: "Times New Roman",Times,serif;',
+        title: 'padding: 0 0 10px 0; color: #591209; font-size: 1.5em; font-weight: bold; font-variant: small-caps; font-family: "Times New Roman",Times,serif;',
         subtitle: 'margin-top: -4px; padding-bottom: 4px; color: #666; font-size: 1.125em; font-variant: small-caps;',
         button: 'background-color: #000; border-width: 0px; border-radius: 5px; padding: 5px 8px; color: #fff; text-align: center;',
+        buttonAlt: 'background-color: #7a2016; border-width: 0px; border-radius: 5px; padding: 5px 8px; color: #fff; text-align: center;',
         buttonWrapper: 'text-align: center; margin: 10px 0; clear: both;',
         textButton: 'background-color: transparent; border: none; padding: 0; color: #591209; text-decoration: underline;',
         infoLink: 'background-color: transparent; border: none; padding: 0; color: #591209; text-decoration: none; font-family: Webdings;',
         imgLink: 'background-color: transparent; border: none; padding: 0;text-decoration: none;',
         fullWidth: 'width: 100%; display: block; padding: 12px 0; text-align: center;',
         code: 'font-family: "Courier New", Courier, monospace; padding-bottom: 6px;',
+        hr: 'border-top: 1px dashed #8c8b8b; background-color: transparent;',
         accent: 'background-color: ##eaeaea;'
     },
 
@@ -43,15 +45,36 @@ var LootGenerator = LootGenerator || (function () {
             adminDialog('Build Database', 'This is your first time using LootGenerator, so you must build the default treasure database. '
             + '<br><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --setup">Run Setup</a></div>');
         }
-        if (typeof state['LootGenerator'].defaults == 'undefined') commandUpgrade();
-        if ((typeof PotionManager !== 'undefined' && (typeof PotionManager.version == 'undefined' || PotionManager.version < 0.3)) || (typeof GearManager !== 'undefined' && (typeof GearManager.version == 'undefined' || GearManager.version < 0.4))) {
+
+        if (typeof state['LootGenerator'].loot == 'undefined') state['LootGenerator'].loot = [];
+        state['LootGenerator'].loot = _.reject(state['LootGenerator'].loot, function (x) { return x.coins == '' && _.size(x.treasure) == 0; });
+        commandUnbestowedList(true);
+
+        if (typeof state['LootGenerator'].sheet == 'undefined') {
+            var message, sheet = detectSheet();
+            if (sheet == 'Unknown') {
+                message = 'LootGenerator was unable to detect the character sheet for your game! You must be using either the 5e Shaped Sheet or the 5th Edition OGL Sheet. Please indicate which sheet you are using.';
+                message += '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --config --sheet|?{Choose Sheet|5e Shaped|5th Edition OGL}">SET SHEET</a></div>';
+                adminDialog('Configuration Notice', message);
+            } else {
+                state['LootGenerator'].sheet = sheet;
+            }
+        }
+
+        if (
+            (typeof PotionManager != 'undefined' && (typeof PotionManager.version == 'undefined' || versionToNumber(PotionManager.version) < 0.4)) ||
+            (typeof GearManager != 'undefined' && (typeof GearManager.version == 'undefined' || versionToNumber(GearManager.version) < 0.6)) ||
+            (typeof PurseStrings != 'undefined' && (typeof PurseStrings.version == 'undefined' || versionToNumber(PurseStrings.version) < 5.6))
+        ) {
             var errs = [];
-            if (typeof PotionManager !== 'undefined' && (typeof PotionManager.version == 'undefined' || PotionManager.version < 0.3)) errs.push('PotionManager');
-            if (typeof GearManager !== 'undefined' && (typeof GearManager.version == 'undefined' || GearManager.version < 0.4))  errs.push('GearManager');
+            if (typeof PurseStrings != 'undefined' && (typeof PurseStrings.version == 'undefined' || versionToNumber(PurseStrings.version) < 5.6)) errs.push('PurseStrings');
+            if (typeof PotionManager != 'undefined' && (typeof PotionManager.version == 'undefined' || versionToNumber(PotionManager.version) < 0.4)) errs.push('PotionManager');
+            if (typeof GearManager != 'undefined' && (typeof GearManager.version == 'undefined' || versionToNumber(GearManager.version) < 0.6))  errs.push('GearManager');
             var gm_message = '<div style=\'' + styles.title + 'color: #c00;\'>⚠️ Upgrade Needed!</div>';
-            gm_message += 'In order to use ' + errs.join(' and ') + ' with LootGenerator, you <b>must</b> upgrade those scripts to the newest version!<br>';
-            if (_.find(errs, function (x) { return x == 'PotionManager'; })) gm_message += '<br><a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/PotionManager" target="_blank">Download PotionManager v0.3+</a>';
-            if (_.find(errs, function (x) { return x == 'GearManager'; })) gm_message += '<br><a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/GearManager" target="_blank">Download GearManager v0.4+</a>.';
+            gm_message += 'The following scripts <b>must</b> be upgraded to the newest version in order to use LootGenerator:<br>';
+            if (_.find(errs, function (x) { return x == 'PurseStrings'; })) gm_message += '<br><a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/PurseStrings" target="_blank">Download PurseStrings v5.6+</a>';
+            if (_.find(errs, function (x) { return x == 'PotionManager'; })) gm_message += '<br><a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/PotionManager" target="_blank">Download PotionManager v0.4+</a>';
+            if (_.find(errs, function (x) { return x == 'GearManager'; })) gm_message += '<br><a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/GearManager" target="_blank">Download GearManager v0.6+</a>.';
             adminDialog('', gm_message);
         }
 
@@ -59,6 +82,7 @@ var LootGenerator = LootGenerator || (function () {
 		if (debugMode) {
             var d = new Date();
             adminDialog('Debug Mode', 'LootGenerator loaded at ' + d.toLocaleTimeString());
+            //state['LootGenerator'].loot = [];
         }
     },
 
@@ -73,7 +97,7 @@ var LootGenerator = LootGenerator || (function () {
 						commandSetup(msg);
 						break;
                     case '--config':
-						commandConfig();
+						commandConfig(msg.content);
 						break;
 					case '--show':
 						commandGenerate(msg);
@@ -81,11 +105,20 @@ var LootGenerator = LootGenerator || (function () {
                     case '--default':
 						commandSetDefault(msg.content);
 						break;
+                    case '--disp':
+						commandDispense(msg.content);
+						break;
+                    case '--list':
+						commandUnbestowedList();
+						break;
                     case '--export':
 						commandExport(msg.content);
 						break;
                     case '--import':
 						commandImport(msg.content);
+						break;
+                    case '--bestow':
+						commandBestow(msg);
 						break;
                     case '--view-potion':
 						commandView(msg.content, 'potion');
@@ -145,73 +178,256 @@ var LootGenerator = LootGenerator || (function () {
             message += enumerateItems(loot).join(', ');
             showDialog(title, message);
 
-            // Provide access to PurseStrings, PotionManager & GearManager
-            var gm_message = '';
-            if (typeof PurseStrings !== 'undefined' && coins != '' && coins != '[coins error]') {
-                gm_message += '<div style=\'' + styles.title + '\'>PurseStrings</div>';
-                gm_message += 'Coins found: ' + coins + '.'
-                + '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!ps --dist ' + coins + '">Distribute to Party Members</a></div>'
-                + '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!ps --add ' + coins + '">Add to <i>selected</i> character</a></div>';
-            }
-
-            if (typeof PotionManager !== 'undefined') {
-                var loot_potions = _.filter(loot, function (item) { return item.search('Potion of') >= 0; });
-                if (loot_potions) loot_potions = _.uniq(loot_potions);
-                var pm_potions = _.pluck(PotionManager.getPotions(), 'name');
-                var potions = _.intersection(loot_potions, pm_potions);
-                if (potions && _.size(potions) > 0) {
-                    if (gm_message != '') gm_message += '<hr>';
-                    gm_message += '<div style=\'' + styles.title + '\'>PotionManager</div>';
-                    let numText = ( _.size(potions) == 1) ? ' type of <b>Potion</b> was ' : ' types of <b>Potions</b> were ';
-                    gm_message += _.size(potions) + numText + 'found.<table style="border: 1px; width: 100%;">';
-                    _.each(potions, function(potion) {
-                        gm_message += '<tr><td style="width: 100%"><a style=\'' + styles.textButton + '\' href="!pm --add ' + potion + '" title="Give to selected character">' + potion
-                        + '</a></td><td><a style=\'' + styles.infoLink + '\' href="!loot --view-potion ' + potion + '" title="View ' + potion + ' info">i</a></td></tr>';
-                    });
-                    gm_message += '</table>';
-                }
-            }
-
-            if (typeof GearManager !== 'undefined') {
-                var ag = _.pluck(GearManager.getGear('Adventuring Gear'), 'name');
-                var wi = _.pluck(GearManager.getGear('Wondrous Items'), 'name');
-                var advGear = _.intersection(loot, ag);
-                var wondItems = _.intersection(loot, wi);
-
-                if ((advGear && _.size(advGear) > 0) || (wondItems && _.size(wondItems) > 0)) {
-                    if (gm_message != '') gm_message += '<hr>';
-                    gm_message += '<div style=\'' + styles.title + '\'>GearManager</div>';
-                    var nText;
-                    advGear = _.uniq(advGear);
-
-                    if (advGear && _.size(advGear) > 0) {
-                        nText = (_.size(advGear) == 1) ? ' type of <b>Adventuring Gear</b> was ' : ' types of <b>Adventuring Gear</b> were ';
-                        gm_message += _.size(advGear) + nText + 'found.<table style="border: 1px; width: 100%;">';
-                        _.each(advGear, function(item) {
-                            gm_message += '<tr><td style="width: 100%"><a style=\'' + styles.textButton + '\' href="!gm --add ' + item + '" title="Give to selected character">' + item
-                            + '</a></td><td><a style=\'' + styles.infoLink + '\' href="!loot --view-gear ' + item + '" title="View ' + item + ' info">i</a></td></tr>';
-                        });
-                        gm_message += '</table>';
-                    }
-
-                    if (wondItems && _.size(wondItems) > 0) {
-                        if (advGear && _.size(advGear) > 0) gm_message += '<br>';
-                        wondItems = _.uniq(wondItems);
-                        nText = (_.size(wondItems) == 1) ? ' <b>Wondrous Item</b> was ' : ' <b>Wondrous Items</b> were ';
-                        gm_message += _.size(wondItems) + nText + 'found.<table style="border: 1px; width: 100%;">';
-                        _.each(wondItems, function(item) {
-                            gm_message += '<tr><td style="width: 100%"><a style=\'' + styles.textButton + '\' href="!gm --add ' + item + '" title="Give to selected character">' + item
-                            + '</a></td><td><a style=\'' + styles.infoLink + '\' href="!loot --view-gear ' + item + '" title="View ' + item + ' info">i</a></td></tr>';
-                        });
-                        gm_message += '</table>';
-                    }
-                }
-            }
-            if (gm_message != '') adminDialog('', gm_message);
-
+            saveLoot(title, coins, treasure);
         } else {
             adminDialog('Error','No valid treasure level was provided. Please try again.');
         }
+    },
+
+    saveLoot = function (title, coins, treasure) {
+        var loot_id = generateUniqueID();
+        if (title == 'Loot') title = title + ' ' + (_.size(_.filter(state['LootGenerator'].loot, function (x) { return x.name.search(/^Loot\s\d{1,3}$/) != -1; })) + 1);
+        if (_.find(state['LootGenerator'].loot, function (x) { return x.name == title; })) title = title + ' ' + (_.size(_.filter(state['LootGenerator'].loot, function (x) { return x.name == title; })) + 1);
+
+        state['LootGenerator'].loot.push({ name: title, id: loot_id, coins: coins, treasure: treasure });
+        showDispensary(loot_id);
+    },
+
+    commandUnbestowedList = function (startup = false) {
+        if (_.size(state['LootGenerator'].loot) > 0) {
+            var message = (startup) ? '<p>Treasure Collection(s) from previous session(s) that have not been completely distributed:</p><ul>' : '<p>The following Treasure Collection(s) have not been completely distributed:</p><ul>';
+            _.each(state['LootGenerator'].loot, function (loot) {
+                message += '<li><a style=\'' + styles.textButton + '\' href="!loot --disp --id|' + loot.id + '" title="Show ' + loot.name + ' for distribution">' + loot.name + '</a> ';
+                message += '<a style=\'' + styles.imgLink + 'font-size: 0.75em;\' href="!loot --disp --id|' + loot.id + ' --delete" title="Delete ' + loot.name + '">❌</a></li>';
+            });
+            message += '</ul>';
+            adminDialog('Unbestowed Loot', message);
+        } else {
+            if (!startup) adminDialog('Unbestowed Loot', 'No Treasure Collections remain to be distributed.');
+        }
+    },
+
+    commandDispense = function (msg) {
+        var parms = msg.trim().split(/\s*\-\-/i), loot_id = '', delLoot = false;
+        _.each(parms, function (x) {
+            var parts = x.split(/\s*\|\s*/i);
+            if (parts[0] == 'id' && parts[1] != '') loot_id = parts[1];
+            if (parts[0] == 'delete') delLoot = true;
+        });
+        if (delLoot && loot_id != '') {
+            state['LootGenerator'].loot = _.reject(state['LootGenerator'].loot, function (x) { return x.id == loot_id; });
+            commandUnbestowedList();
+        }
+        if (loot_id != '' && !delLoot) showDispensary(loot_id);
+    },
+
+    showDispensary = function (loot_id) {
+        // Displays GM dialog for dispensing items from loot
+        var message = '', title = '', loot = _.find(state['LootGenerator'].loot, function (x) { return x.id == loot_id; });
+        if (loot && (loot.coins != '' || _.size(loot.treasure) > 0)) {
+            var tList = [];
+            title = (loot.name.search(/^Loot\s\d{1,3}$/) != -1) ? 'Bestow Items from ' + loot.name : 'Bestow Items from ' + loot.name.replace(/Loot\s(from\s)?/i, '');
+
+            if (loot.coins != '') {
+                message += 'Coins found: ' + loot.coins + '.';
+                var title_text = (typeof PurseStrings !== 'undefined') ? 'Add coins to the selected character\'s Purse' : 'Give coins to the selected character';
+                message += '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --bestow --loot|COINS --dest|sel --id|' + loot_id + '" title="' + title_text + '">Bestow to Character</a></div>';
+                if (typeof PurseStrings !== 'undefined') message += '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --bestow --loot|COINS --dest|party --id|' + loot_id + '" title="Distribute coins amongst the Party Members">Distribute to Party Members</a></div>';
+            }
+
+            if (_.size(loot.treasure) > 0) {
+                if (loot.coins != '') message += '<hr style=\'' + styles.hr + '\'>';
+                message += 'Treasure found:<br>';
+                _.each(loot.treasure, function (item) { tList.push('<a style=\'' + styles.textButton + '\' href="!loot --bestow --loot|' + item + ' --dest|sel --id|' + loot_id + '" title="Bestow ' + item + ' to the selected character">' + item + '</a>'); });
+                message += enumerateItems(tList).join(', ');
+                message += '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --bestow --loot|ALL --dest|sel --id|' + loot_id + '" title="Bestow all treasure items to the selected character">Bestow to Character</a></div>';
+            }
+
+            // EVERYTHING left to the handout
+            message += '<hr style=\'' + styles.hr + '\'><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.buttonAlt + '\' href="!loot --bestow --loot|ALL --dest|party --id|' + loot_id + '" title="Save all coins and/or treasure to the Party Loot handout">💾 Save All to Handout</a></div>';
+        } else {
+            if (loot) {
+                title = 'Distribution Complete';
+                message = 'No more items found. The "' + loot.name + '" Treasure Collection has been removed from storage.';
+            } else {
+                title = 'Error';
+                message = 'A Treasure Collection with that ID no longer exists.';
+            }
+        }
+        if (loot.coins == '' && _.size(loot.treasure) == 0) {
+            state['LootGenerator'].loot = _.reject(state['LootGenerator'].loot, function (x) { return x.id == loot_id; })
+        }
+        adminDialog(title, message);
+    },
+
+    commandBestow = function (msg) {
+        var parms = msg.content.trim().split(/\s*\-\-/i), loot_id, loot_item, dest;
+        _.each(parms, function (x) {
+            var parts = x.split(/\s*\|\s*/i);
+            if (parts[0] == 'id' && parts[1] != '') loot_id = parts[1];
+            if (parts[0] == 'loot' && parts[1] != '') loot_item = parts[1];
+            if (parts[0] == 'dest' && parts[1] != '') dest = parts[1];
+        });
+
+        var message = '', token, char, char_id,
+        loot = _.find(state['LootGenerator'].loot, function (x) { return x.id == loot_id; });
+        if (loot) {
+            if (msg.selected) token = getObj(msg.selected[0]._type, msg.selected[0]._id);
+            if (token) {
+                char = getObj('character', token.get('represents'));
+                if (char) char_id = char.get('id');
+            }
+
+            var name = loot.name, coins = loot.coins, treasure = _.clone(loot.treasure), tList = [];
+            var pm_potions = (typeof PotionManager !== 'undefined') ? _.pluck(PotionManager.getPotions(), 'name') : [];
+            var gear = (typeof GearManager !== 'undefined') ? _.pluck(GearManager.getGear(), 'name') : [];
+            var done, success_message, error_message;
+            switch (loot_item) {
+                case 'COINS':
+                    if (dest == 'party') {
+                        done = (typeof PurseStrings !== 'undefined') ? PurseStrings.distributeCoins(coins) : toPartyHandout(loot_id, [coins]);
+                        success_message = (typeof PurseStrings !== 'undefined') ? coins + ' successfully distributed to Party Members.' : coins + ' successfully added to Party Loot handout.';
+                        error_message = (typeof PurseStrings !== 'undefined') ? 'Unable to distribute coins to Party Members.' : 'Unable to add coins to Party Loot handout.';
+                    } else { // dest == 'sel'
+                        if (char_id) {
+                            done = (typeof PurseStrings !== 'undefined') ? PurseStrings.changePurse(coins, char_id, 'add') : toCharacter(char_id, loot_id, coins);
+                            success_message = (typeof PurseStrings !== 'undefined') ? coins + ' successfully added to ' +  char.get('name') + '\'s Purse.' : coins + ' successfully bestowed to ' +  char.get('name') + '.';
+                            error_message = (typeof PurseStrings !== 'undefined') ? 'Unable to add coins to ' +  char.get('name') + '\'s Purse.' : 'Unable to bestow coins to ' +  char.get('name') + '.';
+                        } else {
+                            error_message = 'No character token selected.';
+                        }
+                    }
+                    if (done) {
+                        showDialog('Coins Bestowed', success_message);
+                        loot.coins = '';
+                    } else adminDialog('Bestow Error', error_message);
+                    break;
+                case 'ALL':
+                    if (dest == 'party') {
+                        toPartyHandout(loot_id, treasure);
+                    } else { // dest == 'sel'
+                        var errs = [];
+                        if (char_id) {
+                            var potions = _.intersection(treasure, pm_potions);
+                            _.each(potions, function (x) { treasure = _.reject(treasure, function (y) { return x == y; }); });
+
+                            var advGear = _.intersection(treasure, gear);
+                            _.each(advGear, function (x) { treasure = _.reject(treasure, function (y) { return x == y; }); });
+
+                            _.each(treasure, function (item) {
+                                done = toCharacter(char.get('id'), loot_id, item);
+                                if (done) {
+                                    var used = loot.treasure[_.lastIndexOf(loot.treasure, item)] = '';
+                                    loot.treasure = _.compact(used);
+                                } else errs.push('One or more loot items failed to be added.');
+                            });
+
+                            if (typeof GearManager !== 'undefined') {
+                                _.each(advGear, function (item) {
+                                    done = GearManager.addGear({selected: [{_type: 'graphic', _id: token.get('id')}], content: item});
+                                    if (done) {
+                                        var used = loot.treasure[_.lastIndexOf(loot.treasure, item)] = '';
+                                        loot.treasure = _.compact(used);
+                                    } else errs.push('One or more GearManager items failed to be added.');
+                                });
+                            }
+
+                            if (typeof PotionManager !== 'undefined') {
+                                _.each(potions, function (item) {
+                                    done = PotionManager.addPotion({selected: [{_type: 'graphic', _id: token.get('id')}], content: item});
+                                    if (done) {
+                                        var used = loot.treasure[_.lastIndexOf(loot.treasure, item)] = '';
+                                        loot.treasure = _.compact(used);
+                                    } else errs.push('One or more PotionManager items failed to be added.');
+                                });
+                            }
+
+                            if (_.size(errs) > 0) {
+                                errs = _.unique(errs);
+                                adminDialog('Bestow Error', 'The following errors occured bestowing loot to ' + char.get('name') + ':<ul><li>' + errs.join('</li><li>') + '</li><ul>');
+                            } else showDialog('Loot Bestowed', 'All loot successfully bestowed to ' + char.get('name') + '.');
+                        } else {
+                            adminDialog('Bestow Error', 'No character token selected.');
+                        }
+                    }
+                    break;
+                default: // Single item
+                    if (_.find(pm_potions, function (x) { return x == loot_item; })) {
+                        done = PotionManager.addPotion({selected: [{_type: 'graphic', _id: token.get('id')}], content: loot_item});
+                    } else if (_.find(gear, function (x) { return x == loot_item; })) {
+                        done = GearManager.addGear({selected: [{_type: 'graphic', _id: token.get('id')}], content: loot_item});
+                    } else {
+                        done = toCharacter(char.get('id'), loot_id, loot_item);
+                    }
+                    if (done) {
+                        showDialog('Loot Bestowed', loot_item + ' bestowed to ' + char.get('name') + '.');
+                        loot.treasure[_.lastIndexOf(loot.treasure, loot_item)] = '';
+                        loot.treasure = _.compact(loot.treasure);
+                    } else adminDialog('Bestow Error', 'Unable to bestow ' + loot_item + ' to ' + char.get('name') + '.');
+            }
+            showDispensary(loot_id);
+        }
+    },
+
+    toPartyHandout = function (loot_id, new_items) {
+        // Save all remaining treasure to Party Loot handout
+        var pLoot = findObjs({name: 'Party Loot', type: 'handout'})[0];
+        if (!pLoot) pLoot = createObj("handout", {name: 'Party Loot'});
+        if (pLoot) {
+            var loot = _.find(state['LootGenerator'].loot, function (x) { return x.id == loot_id; });
+            var name = loot.name.toUpperCase() + ':', new_notes;
+            if (typeof new_items == 'string') new_items = new_items.split(', ');
+            new_items = denumerateItems(new_items);
+
+            pLoot.get('notes', function (notes) {
+                var lines = processHandout(notes);
+                if (_.size(lines) != 0) lines.push('');
+                if (loot.coins != '') name += ' ' + loot.coins + ',';
+                lines.push(name + ' ' + enumerateItems(new_items).join(', '));
+
+                if (lines[0] == '') lines.shift();
+                new_notes = '<p>' + lines.join('</p><p>') + '</p>';
+
+                setTimeout(function () {
+                    pLoot.set({ notes: new_notes });
+                    showDialog('Loot Saved', 'All remaining "' + loot.name + '" was successfully recorded in the <i>Party Loot</i> handout. The Treasure Collection has been removed from storage.');
+                    state['LootGenerator'].loot = _.reject(state['LootGenerator'].loot, function (x) { return x.id == loot_id; })
+                }, 0);
+            });
+        }
+    },
+
+    toCharacter = function (char_id, loot_id, new_item) {
+        // Save to character sheet
+        var retval = true,
+        loot = _.find(state['LootGenerator'].loot, function (x) { return x.id == loot_id; });
+
+        var field = findObjs({ type: 'attribute', characterid: char_id, name: (state['LootGenerator'].sheet == '5e Shaped' ? 'miscellaneous_notes' : 'treasure') })[0];
+        if (!field) field = createObj("attribute", {characterid: char_id, name: (state['LootGenerator'].sheet == '5e Shaped' ? 'miscellaneous_notes' : 'treasure'), current: ''});
+        if (field) {
+            var notes = field.get('current').split(/\n/), name = loot.name.toUpperCase() + ':', newLines = [], found = false;
+            new_item = denumerateItems([new_item]);
+            _.each(notes, function (line) {
+                if (line.startsWith(name)) {
+                    var items = denumerateItems(line.replace(name + ' ', '').split(/\,\s*/));
+                    _.each(new_item, function (item) { items.push(item); });
+                    line = name + ' ' + enumerateItems(items).join(', ');
+                    found = true;
+                }
+                newLines.push(line);
+            });
+
+            if (!found) {
+                if (notes != '') newLines.push('');
+                newLines.push(name + ' ' + enumerateItems(new_item).join(', '));
+            }
+
+            if (newLines[0] == '') newLines.shift();
+            field.set({ current: newLines.join('\n') });
+        } else {
+            retval = false;
+        }
+        return retval;
     },
 
     commandView = function (msg, type = '') {
@@ -219,7 +435,8 @@ var LootGenerator = LootGenerator || (function () {
         if (type == 'potion' && typeof PotionManager !== 'undefined') {
             var potion = _.findWhere(PotionManager.getPotions(), {name: name});
             if (potion) {
-                adminDialog(potion.name, potion.content.replace(/\n/g, '<br>').replace(/\[{2}([^\]]*)\]{2}/g, '<span style=\'color: #c00;\'>$1</span>'));
+                var category = '<div style="' + styles.subtitle + '">Adventuring Gear</div>';
+                adminDialog(potion.name, category + potion.content.replace(/\n/g, '<br>').replace(/\[{2}([^\]]*)\]{2}/g, '<span style=\'color: #c00;\'>$1</span>'));
             } else {
                 adminDialog('Error', name + ' is not a valid potion.');
             }
@@ -797,40 +1014,56 @@ var LootGenerator = LootGenerator || (function () {
         adminDialog('Help Menu', message);
     },
 
-    commandConfig = function () {
+    commandConfig = function (msg) {
         // Set default options for loot generation
-        if ((typeof PotionManager !== 'undefined' && (typeof PotionManager.version == 'undefined' || PotionManager.version < 0.3)) || (typeof GearManager !== 'undefined' && (typeof GearManager.version == 'undefined' || GearManager.version < 0.4))) {
+        var parms = msg.replace('!loot --config', '').split(/\s*\-\-/i);
+        _.each(parms, function (x) {
+            var parts = x.split(/\s*\|\s*/i);
+            if (parts[0] == 'sheet' && parts[1] != '') {
+                if (sheet == '5e Shaped' || sheet == '5th Edition OGL') state['LootGenerator'].sheet = sheet;
+                else state['LootGenerator'].sheet = 'Unknown';
+            }
+        });
+
+        if (
+            (typeof PurseStrings != 'undefined' && (typeof PurseStrings.version == 'undefined' || versionToNumber(PurseStrings.version) < 5.6)) ||
+            (typeof PotionManager != 'undefined' && (typeof PotionManager.version == 'undefined' || versionToNumber(PotionManager.version) < 0.4)) ||
+            (typeof GearManager != 'undefined' && (typeof GearManager.version == 'undefined' || versionToNumber(GearManager.version) < 0.6))
+        ) {
             var errs = [];
-            if (typeof PotionManager !== 'undefined' && (typeof PotionManager.version == 'undefined' || PotionManager.version < 0.3)) errs.push('PotionManager');
-            if (typeof GearManager !== 'undefined' && (typeof GearManager.version == 'undefined' || GearManager.version < 0.4))  errs.push('GearManager');
+            if (typeof PurseStrings != 'undefined' && (typeof PurseStrings.version == 'undefined' || versionToNumber(PurseStrings.version) < 5.6)) errs.push('PurseStrings');
+            if (typeof PotionManager != 'undefined' && (typeof PotionManager.version == 'undefined' || versionToNumber(PotionManager.version) < 0.4)) errs.push('PotionManager');
+            if (typeof GearManager != 'undefined' && (typeof GearManager.version == 'undefined' || versionToNumber(GearManager.version) < 0.6))  errs.push('GearManager');
             var gm_message = '<div style=\'' + styles.title + 'color: #c00;\'>⚠️ Upgrade Needed!</div>';
-            gm_message += 'In order to use ' + errs.join(' and ') + ' with LootGenerator, you <b>must</b> upgrade those scripts to the newest version!<br>';
-            if (_.find(errs, function (x) { return x == 'PotionManager'; })) gm_message += '<br><a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/PotionManager" target="_blank">Download PotionManager v0.3+</a>';
-            if (_.find(errs, function (x) { return x == 'GearManager'; })) gm_message += '<br><a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/GearManager" target="_blank">Download GearManager v0.4+</a>.';
+            gm_message += 'The following scripts <b>must</b> be upgraded to the newest version in order to use LootGenerator:<br>';
+            if (_.find(errs, function (x) { return x == 'PurseStrings'; })) gm_message += '<br><a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/PurseStrings" target="_blank">Download PurseStrings v5.6+</a>';
+            if (_.find(errs, function (x) { return x == 'PotionManager'; })) gm_message += '<br><a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/PotionManager" target="_blank">Download PotionManager v0.4+</a>';
+            if (_.find(errs, function (x) { return x == 'GearManager'; })) gm_message += '<br><a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/GearManager" target="_blank">Download GearManager v0.6+</a>.';
             adminDialog('', gm_message);
+        } else if (typeof state['LootGenerator'].sheet == 'undefined' || state['LootGenerator'].sheet == 'Unknown') {
+            var gm_message = '<p style=\'' + styles.alert + '\'>⚠️ Unknown character sheet!</p>';
+            gm_message += '<p>LootGenerator was unable to detect the character sheet for your game. You must be using either the 5e Shaped Sheet or the 5th Edition OGL Sheet. Please tell LootGenerator what character sheet is in use before you can continue using the script.</p><br>';
+            gm_message += 'See the <a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/LootGenerator" target="_blank">documentation</a> for more details.'
+            + '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --config --sheet|?{Choose Sheet|5e Shaped|5th Edition OGL}">SET SHEET</a></div>';
+            adminDialog('Error', gm_message);
         } else {
-            var message = '<div style=\'' + styles.title + '\'>Defaults</div>These are the default values for generating Gems, Art, Mundane, and Magic items. These values will be used if not set within the <span style=\'' + styles.code + '\'>--mod</span> parameter during loot generation.<br><br>';
+            var message = '';
+            if (_.size(state['LootGenerator'].loot) > 0) {
+                message += '<div style=\'' + styles.title + '\'>Unbestowed Loot</div>You have ' + _.size(state['LootGenerator'].loot) + ' Treasure ' + (_.size(state['LootGenerator'].loot) == 1 ? 'Collection' : 'Collections') + ' with undistributed loot remaining.';
+                message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --list">Show List</a></div><hr style=\'' + styles.hr + '\'>';
+            }
+
+            message += '<div style=\'' + styles.title + '\'>Defaults</div>';
             message += '<b>Gems:</b> ' + state['LootGenerator'].defaults.gems + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Gems Default|Show,show-gems|None,no-gems|Less,less-gems|More,more-gems}">✏️</a><br>';
             message += '<b>Art:</b> ' + state['LootGenerator'].defaults.art + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Art Default|Show,show-art|None,no-art|Less,less-art|More,more-art}">✏️</a><br>';
             message += '<b>Mundane Items:</b> ' + state['LootGenerator'].defaults.mundane + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Mundane Items Default|Show,show-mundane|None,no-mundane|Less,less-mundane|More,more-mundane}">✏️</a><br>';
-            message += '<b>Magic Items:</b> ' + state['LootGenerator'].defaults.magic + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Magic Items Default|Show,show-magic|None,no-magic|Less,less-magic|More,more-magic}">✏️</a><hr>';
+            message += '<b>Magic Items:</b> ' + state['LootGenerator'].defaults.magic + ' <a style="' + styles.imgLink + '" href="!loot --default ?{Magic Items Default|Show,show-magic|None,no-magic|Less,less-magic|More,more-magic}">✏️</a><hr style=\'' + styles.hr + '\'>';
 
-            message += '<div style=\'' + styles.title + '\'>Import/Export</div>Use the export button below to export Gems, Art, Magic Items, Mundane Items, and Spells to handouts for customization.<br>';
-            message += '<div style=\'' + styles.buttonWrapper + 'color:#c00;\'>⚠️ <i>Warning: This will overwrite any current handouts you may have customized.</i></div>';
+            message += '<div style=\'' + styles.title + '\'>Import/Export</div>';
+            message += '<div style=\'' + styles.buttonWrapper + 'color:#c00; margin-top: 0;\'>⚠️ <i>Warning: This will overwrite any edited handouts you may not have imported yet.</i></div>';
             message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --export">Export Data</a></div>';
-            message += 'Edit the exported handouts to add your own Items and Spells, then use the import command to update the database.<br><br>';
-            message += 'Syntax for importing is as follows (all on one line): <div style=\'' + styles.code
-            + '\'>!loot --import --tables:&lt;table_name&gt;</div>';
-            message += '<b style=\'' + styles.code + '\'>&lt;table_name&gt;:</b><br>Mandatory. Indicates which handouts (comma delimited) to import. Available values are <i>Gems, Art, Table A, Table B, Table C, Table D, Table E, Table F, Table G, Table H, Table I</i> for Magic Item tables; <i>Mundane</i> for Mundane Items, and <i>Spells</i> for Spells.<br><br>';
+            message += '<br>Syntax for importing is as follows (all on one line): <div style=\'' + styles.code + '\'>!loot --import --tables:table_name[, table_name]</div><br>';
             message += 'See the <a style="' + styles.textButton + '" href="https://github.com/blawson69/LootGenerator">documentation</a> for complete instructions.';
-
-            if (typeof PurseStrings !== 'undefined' || typeof PotionManager !== 'undefined' || typeof GearManager !== 'undefined') {
-                message += '<hr><div style=\'' + styles.title + '\'>Script Integration</div>Commands for relevant loot items will be generated for following installed scripts:<ul>';
-                if (typeof PurseStrings !== 'undefined') message += '<li>PurseStrings</li>';
-                if (typeof PotionManager !== 'undefined') message += '<li>PotionManager</li>';
-                if (typeof GearManager !== 'undefined') message += '<li>GearManager</li>';
-                message += '</ul>';
-            }
 
             message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --help">Help Menu</a></div>';
             adminDialog('', message);
@@ -966,7 +1199,7 @@ var LootGenerator = LootGenerator || (function () {
                 var mNote = findObjs({name: 'Loot Generator: Magic ' + level.heading, type: 'handout'})[0];
                 if (mNote) {
                     mNote.get('notes', function (notes) {
-                        var items = decodeEditorText(notes, {asArray:true});
+                        var items = processHandout(notes);
                         oldData = [];
                         _.each(items, function (item) {
                             if (item.search(/\|/) > 0) {
@@ -997,7 +1230,7 @@ var LootGenerator = LootGenerator || (function () {
                 var muNote = findObjs({name: 'Loot Generator: Mundane Items', type: 'handout'})[0];
                 if (muNote) {
                     muNote.get('notes', function (notes) {
-                        var oldData = [], items = decodeEditorText(notes, {asArray:true});
+                        var oldData = [], items = processHandout(notes);
                         _.each(items, function (item) {
                             if (item.search(/\|/) > 0) {
                                 let aItem = item.split('|'), tmpItem = {};
@@ -1027,7 +1260,7 @@ var LootGenerator = LootGenerator || (function () {
                 var spNote = findObjs({name: 'Loot Generator: Spells', type: 'handout'})[0];
                 if (spNote) {
                     spNote.get('notes', function (notes) {
-                        var items = decodeEditorText(notes, {asArray:true}),
+                        var items = processHandout(notes),
                         levels = [{heading:'CANTRIPS:',level:'cantrips'}, {heading:'0 LEVEL:',level:'cantrips'}, {heading:'1ST LEVEL:',level:'level1'}, {heading:'2ND LEVEL:',level:'level2'}, {heading:'3RD LEVEL:',level:'level3'}, {heading:'4TH LEVEL:',level:'level4'}, {heading:'5TH LEVEL:',level:'level5'}, {heading:'6TH LEVEL:',level:'level6'}, {heading:'7TH LEVEL:',level:'level7'}, {heading:'8TH LEVEL:',level:'level8'}, {heading:'9TH LEVEL:',level:'level9'}];
 
                         _.each(levels, function(level) {
@@ -1052,7 +1285,7 @@ var LootGenerator = LootGenerator || (function () {
                 var gNote = findObjs({name: 'Loot Generator: Gems', type: 'handout'})[0];
                 if (gNote) {
                     gNote.get('notes', function (notes) {
-                        var items = decodeEditorText(notes, {asArray:true}),
+                        var items = processHandout(notes),
                         levels = [{heading:'LEVEL 1:',level:'level1'}, {heading:'LEVEL 2:',level:'level2'}, {heading:'LEVEL 3:',level:'level3'}, {heading:'LEVEL 4:',level:'level4'}, {heading:'LEVEL 5:',level:'level5'}];
 
                         _.each(levels, function(level) {
@@ -1077,7 +1310,7 @@ var LootGenerator = LootGenerator || (function () {
                 var aNote = findObjs({name: 'Loot Generator: Art', type: 'handout'})[0];
                 if (aNote) {
                     aNote.get('notes', function (notes) {
-                        var items = decodeEditorText(notes, {asArray:true}),
+                        var items = processHandout(notes),
                         levels = [{heading:'LEVEL 1:',level:'level1'}, {heading:'LEVEL 2:',level:'level2'}, {heading:'LEVEL 3:',level:'level3'}, {heading:'LEVEL 4:',level:'level4'}, {heading:'LEVEL 5:',level:'level5'}];
 
                         _.each(levels, function(level) {
@@ -1120,15 +1353,11 @@ var LootGenerator = LootGenerator || (function () {
 
     //---- UTILITY FUNCTIONS ----//
 
-    commandUpgrade = function () {
-        if (typeof state['LootGenerator'].defaults == 'undefined') state['LootGenerator'].defaults = {};
-        state['LootGenerator'].defaults.gems = state['LootGenerator'].useGems ? 'show-gems' : 'no-gems';
-        state['LootGenerator'].defaults.art = state['LootGenerator'].useArt ? 'show-art' : 'no-art';
-        state['LootGenerator'].defaults.mundane = state['LootGenerator'].useMundane ? 'show-mundane' : 'no-mundane';
-        state['LootGenerator'].defaults.magic = state['LootGenerator'].useMagic ? 'show-magic' : 'no-magic';
-
-        adminDialog('Upgrade Complete', 'LootGenerator has been upgraded to expand the default values. Your previous default settings have been converted. '
-        + '<br><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --config">Open Config</a></div>');
+    versionToNumber = function (ver) {
+        ver = ver.split('.');
+        var pri = ver[0];
+        ver.shift();
+        return parseFloat(pri + '.' + ver.join(''));
     },
 
     enumerateItems = function (items) {
@@ -1141,6 +1370,26 @@ var LootGenerator = LootGenerator || (function () {
             else retItems.push(item);
         });
         return retItems;
+    },
+
+    denumerateItems = function (items) {
+        // Takes an array of enumerated items and expands it by count
+        var tmpItems = [], re = /^[^\(]+\(\d+\)$/;
+        _.each(items, function (item) {
+            if (item.match(re)) {
+                //var count = item.replace(/^[^\(]+\((\d+)\)$/, '$1');
+                var parts = item.split(/\s*\(/);
+                var count = parseInt(parts[1].replace(')', ''));
+                var name = (count == 1 && parts[0].endsWith('s')) ? parts[0].replace(/s$/, '') : parts[0];
+                for (var x = 0; x < count; x++) {
+                    //tmpItems.push(item.replace(' (' + count + ')', ''));
+                    tmpItems.push(name);
+                }
+            } else {
+                tmpItems.push(item);
+            }
+        });
+        return tmpItems;
     },
 
     modifyRoll = function (roll, type, mods) {
@@ -1181,21 +1430,56 @@ var LootGenerator = LootGenerator || (function () {
         return tmp;
     },
 
-    decodeEditorText = function (t, o) {
-        // Strips the editor encoding from GMNotes (thanks to The Aaron!)
-        let w = t;
-        o = Object.assign({ separator: '\r\n', asArray: false }, o);
-        /* Token GM Notes */
-        if (/^%3Cp%3E/.test(w)) {
-            w = unescape(w);
-        }
-        if (/^<p>/.test(w)) {
-            let lines = w.match(/<p>.*?<\/p>/g).map( l => l.replace(/^<p>(.*?)<\/p>$/,'$1'));
-            return o.asArray ? lines : lines.join(o.separator);
-        }
-        /* neither */
-        return t;
+    processHandout = function (notes = '') {
+        var retval = [], text = notes.trim();
+        text = text.replace(/<p[^>]*>/gi, '<p>').replace(/\n(<p>)?/gi, '</p><p>').replace(/<br>/gi, '</p><p>');
+        text = text.replace(/<\/?(span|div|pre|img|code|b|i|h1|h2|h3|h4|h5|ol|ul|pre)[^>]*>/gi, '');
+        if (text != '' && /<p>.*?<\/p>/g.test(text)) retval = text.match(/<p>.*?<\/p>/g).map( l => l.replace(/^<p>(.*?)<\/p>$/,'$1'));
+        return retval;
     },
+
+    detectSheet = function () {
+        var sheet = 'Unknown', char = findObjs({type: 'character'})[0];
+        if (char) {
+            var charAttrs = findObjs({type: 'attribute', characterid: char.get('id')}, {caseInsensitive: true});
+            if (_.find(charAttrs, function (x) { return x.get('name') == 'character_sheet' && x.get('current').search('Shaped') != -1; })) sheet = '5e Shaped';
+            if (_.find(charAttrs, function (x) { return x.get('name').search('mancer') != -1; })) sheet = '5th Edition OGL';
+        }
+        return sheet;
+    },
+
+    generateUniqueID = function () {
+        "use strict";
+        return generateUUID().replace(/_/g, "Z");
+    },
+
+    generateUUID = (function () {
+        "use strict";
+        var a = 0, b = [];
+        return function() {
+            var c = (new Date()).getTime() + 0, d = c === a;
+            a = c;
+            for (var e = new Array(8), f = 7; 0 <= f; f--) {
+                e[f] = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(c % 64);
+                c = Math.floor(c / 64);
+            }
+            c = e.join("");
+            if (d) {
+                for (f = 11; 0 <= f && 63 === b[f]; f--) {
+                    b[f] = 0;
+                }
+                b[f]++;
+            } else {
+                for (f = 0; 12 > f; f++) {
+                    b[f] = Math.floor(64 * Math.random());
+                }
+            }
+            for (f = 0; 12 > f; f++){
+                c += "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz".charAt(b[f]);
+            }
+            return c;
+        };
+    }()),
 
     //---- DEFAULT LOOT VALUES ----//
 
