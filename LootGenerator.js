@@ -187,7 +187,7 @@ var LootGenerator = LootGenerator || (function () {
     saveLoot = function (title, coins, treasure) {
         var loot_id = generateUniqueID();
         if (title == 'Loot') title = title + ' ' + (_.size(_.filter(state['LootGenerator'].loot, function (x) { return x.name.search(/^Loot\s\d{1,3}$/) != -1; })) + 1);
-        if (_.find(state['LootGenerator'].loot, function (x) { return x.name == title; })) title = title + ' ' + (_.size(_.filter(state['LootGenerator'].loot, function (x) { return x.name == title; })) + 1);
+        if (_.find(state['LootGenerator'].loot, function (x) { return x.name.startsWith(title); })) title = title + ' ' + (_.size(_.filter(state['LootGenerator'].loot, function (x) { return x.name.startsWith(title); })) + 1);
 
         state['LootGenerator'].loot.push({ name: title, id: loot_id, coins: coins, treasure: treasure });
         showDispensary(loot_id);
