@@ -162,7 +162,7 @@ Examples:
 The Spell tables are not weighted as the Magic Items are, but are a simple list of all available spells that are used to generate spell scrolls. Each level of spell is a comma delimited list on one line with a heading designating the level of the spells in the list. These headings are in ALL CAPS followed by a colon and also on their own line. "CANTRIPS:" or "0 LEVEL:" are allowed for cantrips, while the remainder should be "1ST LEVEL:" and so on.
 
 #### Gems and Art
-As with the Spell tables, these are lists of items based on the DMG tables. There are five levels with the headings in all caps followed by a colon. First level has the heading of "LEVEL 1:" and so on.
+As with the Spell tables, these are lists of items based on the DMG tables. There are five levels based on perceived value with the headings in all caps followed by a colon. First level has the heading of "LEVEL 1:" and so on.
 
 #### Formatting Guidelines
 Because you could be generating quite a lengthy list of loot items, avoid using commas in your custom Item names. You will notice that default Item names that contain commas in the DMG tables have been modified to remove them. For instance, "Shield, +1" has been changed to "+1 Shield". Also, the use of parenthesis should be minimized. These are used primarily by LootGenerator to denote multiples of items. Three Potions of Healing are generated as "Potion of Healing (3)." And, of course, avoid the use of replacement variable and syntax characters (:, |, %, @, $, ~).
