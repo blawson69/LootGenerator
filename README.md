@@ -99,7 +99,7 @@ Unique magic items are automatically removed from the loot database after genera
 ```
 
 ## --list
-Displays a list of all generated Treasure Collections that have not been completely distributed. The list provides a link to re-display the distribution dialog for that Treasure Collection and a link to delete the Treasure Collection in case you have otherwise manually distributed the treasure.
+Displays a list of all generated Treasure Collections that have not been completely distributed (see [above](#distributing-loot)). The list provides a link to re-display the distribution dialog for that Treasure Collection and a link to delete the Treasure Collection in case you have otherwise manually distributed the treasure.
 
 ```
 !loot --list
