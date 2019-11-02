@@ -178,19 +178,29 @@ var LootGenerator = LootGenerator || (function () {
             message += enumerateItems(loot).join(', ');
             showDialog(title, message);
 
-            saveLoot(title, coins, treasure);
+            saveLoot(title, coins, treasure, recip);
         } else {
             adminDialog('Error','No valid treasure level was provided. Please try again.');
         }
     },
 
-    saveLoot = function (title, coins, treasure) {
+    showLoot = function (loot_id) {
+        var message, loot = _.find(state['LootGenerator'].loot, function (x) { return x.id == loot_id; });
+        if (loot) {
+            message = (loot.recip != '') ? loot.recip + ' found: ' : '';
+            message += (loot.coins != '') ? loot.coins + ', ' : '';
+            message += enumerateItems(loot.treasure).join(', ');
+            showDialog(loot.name, message);
+        }
+    },
+
+    saveLoot = function (title, coins, treasure, recip) {
         var loot_id = generateUniqueID();
         if (title == 'Loot') title = title + ' ' + (_.size(_.filter(state['LootGenerator'].loot, function (x) { return x.name.search(/^Loot\s\d{1,3}$/) != -1; })) + 1);
         if (_.find(state['LootGenerator'].loot, function (x) { return x.name.startsWith(title); })) title = title + ' ' + (_.size(_.filter(state['LootGenerator'].loot, function (x) { return x.name.startsWith(title); })) + 1);
 
-        state['LootGenerator'].loot.push({ name: title, id: loot_id, coins: coins, treasure: treasure });
-        showDispensary(loot_id);
+        state['LootGenerator'].loot.push({ name: title, id: loot_id, recip: recip, coins: coins, treasure: treasure });
+        showDispensary(loot_id, false);
     },
 
     commandUnbestowedList = function (startup = false) {
@@ -221,7 +231,7 @@ var LootGenerator = LootGenerator || (function () {
         if (loot_id != '' && !delLoot) showDispensary(loot_id);
     },
 
-    showDispensary = function (loot_id) {
+    showDispensary = function (loot_id, player_view = true) {
         // Displays GM dialog for dispensing items from loot
         var message = '', title = '', loot = _.find(state['LootGenerator'].loot, function (x) { return x.id == loot_id; });
         if (loot && (loot.coins != '' || _.size(loot.treasure) > 0)) {
@@ -245,10 +255,13 @@ var LootGenerator = LootGenerator || (function () {
 
             // EVERYTHING left to the handout
             message += '<hr style=\'' + styles.hr + '\'><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.buttonAlt + '\' href="!loot --bestow --loot|ALL --dest|party --id|' + loot_id + '" title="Save all coins and/or treasure to the Party Loot handout">💾 Save All to Handout</a></div>';
+
+            if (player_view) showLoot(loot_id);
         } else {
             if (loot) {
                 title = 'Distribution Complete';
                 message = 'No more items found. The "' + loot.name + '" Treasure Collection has been removed from storage.';
+                showDialog(loot.name, 'All loot has been distributed.');
             } else {
                 title = 'Error';
                 message = 'A Treasure Collection with that ID no longer exists.';
