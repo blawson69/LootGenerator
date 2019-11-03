@@ -113,7 +113,7 @@ Displays help for formatting the [--show](#--show) command and a button to displ
 ```
 
 ## --import
-Importing gives you the ability to customize your Gems, Art, Magic Items, Mundane Items, and Spells lists. Once you have [exported](#--export) the necessary tables you can edit them to your liking. Leave any original items you wish to use and add your own according to the guidelines below.
+Importing gives you the ability to customize your Gems, Art, Magic Items, Mundane Items, and Spells lists. Once you have [exported](#--export) the necessary tables you can edit them to your liking. Leave any original items you wish to use, delete those you don't want, and add your own custom items according to the guidelines below.
 
 The required `--tables` parameter is a comma delimited list of handouts to which you have made changes. The options are *Gems, Art, Table A, Table B, Table C, Table D, Table E, Table F, Table G, Table H, Table I, Mundane*, and *Spells*. If you wish to only modify the Spells, send
 
