@@ -2,9 +2,9 @@
 
 > **New in version 2.0:** LootGenerator now allows the GM to easily distribute *all* generated loot! You may select a character token and have it written to the character's sheet, or save the entire treasure collection to a handout for players to access later. All undistributed loot is automatically remembered between sessions, allowing you to choose the proper moment for yourself and your players for dolling out treasure.
 
-This [Roll20](http://roll20.net/) script generates loot according to the treasure tables in the Dungeon & Dragons 5th Edition Dungeon Master's Guide (DMG). It generates a random number (1d100) and displays the results in chat with options for showing the name of the character discovering the treasure, the name of the object from which the loot is taken, and more. LootGenerator will also let you add your own special item to the list and provides options for modifying the generation of various kinds of loot.
+This [Roll20](http://roll20.net/) script generates loot according to the treasure tables in the Dungeon & Dragons 5th Edition Dungeon Master's Guide (DMG). It generates a random number (1d100) and displays the results in chat with options for showing the name of the character discovering the treasure, the name of the object from which the loot is taken, and more. LootGenerator will let you add your own special item to the generated loot, provides options for modifying the generation of each loot category, and allows you to import custom items to all loot categories.
 
-As an improvement to the basic treasure tables, LootGenerator also includes a Mundane Items category in addition to the default Coins, Gems, Art, and Magic Items categories. The default Mundane Items include Adventuring Gear from the Player's Handbook. The script also allows for adding custom items to all categories.
+As an improvement to the basic treasure tables, LootGenerator also includes a Mundane Items category in addition to the default Coins, Gems, Art, and Magic Items categories. The default Mundane Items include Adventuring Gear from the Player's Handbook.
 
 LootGenerator is for use with the [5e Shaped Sheet](http://github.com/mlenser/roll20-character-sheets/tree/master/5eShaped) and the D&D 5th Edition OGL Sheet.
 
