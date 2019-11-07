@@ -1,4 +1,4 @@
-﻿/*
+/*
 LootGenerator
 A Roll20 script for generating random loot
 
@@ -37,20 +37,16 @@ var LootGenerator = LootGenerator || (function () {
         if (!_.has(state, 'LootGenerator')) {
             state['LootGenerator'] = state['LootGenerator'] || {};
             if (typeof state['LootGenerator'].defaults == 'undefined') state['LootGenerator'].defaults = {gems: 'show-gems', art: 'show-art', mundane: 'show-mundane', magic: 'show-magic'};
-            if (typeof state['LootGenerator'].gems == 'undefined') state['LootGenerator'].gems = null;
-            if (typeof state['LootGenerator'].art == 'undefined') state['LootGenerator'].art = null;
-            if (typeof state['LootGenerator'].mundane == 'undefined') state['LootGenerator'].mundane = null;
-            if (typeof state['LootGenerator'].magic == 'undefined') state['LootGenerator'].magic = null;
-            if (typeof state['LootGenerator'].spells == 'undefined') state['LootGenerator'].spells = null;
+            if (typeof state['LootGenerator'].sheet == 'undefined') state['LootGenerator'].sheet = 'Unknown';
             adminDialog('Build Database', 'This is your first time using LootGenerator, so you must build the default treasure database. '
-            + '<br><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --setup">Run Setup</a></div>');
+            + '<br><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --setup --reset">Run Setup</a></div>');
         }
 
         if (typeof state['LootGenerator'].loot == 'undefined') state['LootGenerator'].loot = [];
         state['LootGenerator'].loot = _.reject(state['LootGenerator'].loot, function (x) { return x.coins == '' && _.size(x.treasure) == 0; });
         commandUnbestowedList(true);
 
-        if (typeof state['LootGenerator'].sheet == 'undefined') {
+        if (state['LootGenerator'].sheet == 'Unknown') {
             var message, sheet = detectSheet();
             if (sheet == 'Unknown') {
                 message = 'LootGenerator was unable to detect the character sheet for your game! You must be using either the 5e Shaped Sheet or the 5th Edition OGL Sheet. Please indicate which sheet you are using.';
@@ -1031,9 +1027,9 @@ var LootGenerator = LootGenerator || (function () {
         // Set default options for loot generation
         var parms = msg.replace('!loot --config', '').split(/\s*\-\-/i);
         _.each(parms, function (x) {
-            var parts = x.split(/\s*\|\s*/i);
+            var parts = x.trim().split(/\s*\|\s*/i);
             if (parts[0] == 'sheet' && parts[1] != '') {
-                if (sheet == '5e Shaped' || sheet == '5th Edition OGL') state['LootGenerator'].sheet = sheet;
+                if (parts[1] == '5e Shaped' || parts[1] == '5th Edition OGL') state['LootGenerator'].sheet = parts[1];
                 else state['LootGenerator'].sheet = 'Unknown';
             }
         });
@@ -1093,7 +1089,7 @@ var LootGenerator = LootGenerator || (function () {
         } else {
             adminDialog('Set Default Error', 'No valid parameters were sent.');
         }
-        commandConfig();
+        commandConfig(msg);
     },
 
     commandSetup = function (msg) {
