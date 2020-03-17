@@ -171,3 +171,5 @@ To provide customization options for Magic Items, Mundane Items, and Spells, exp
 ```
 
 Note: If you wish to reset the database to start another campaign and you have customized any of the tables, you can skip the [`--setup` command](#--setup) and simply re-import data from those tables.
+
+This script and its contents are permissible under the Wizards of the Coast's Fan Content Policy. Portions of the data used are property of and © Wizards of the Coast LLC.

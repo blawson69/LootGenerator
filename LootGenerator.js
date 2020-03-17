@@ -1,13 +1,13 @@
 /*
 LootGenerator
-A Roll20 script for generating random loot
+A Roll20 script for generating random loot for D&D 5e games. This script and its contents are permissible under
+the Wizards of the Coast's Fan Content Policy. Portions of the data used are property of and © Wizards of the Coast LLC.
 
 On Github:	https://github.com/blawson69
 Contact me: https://app.roll20.net/users/1781274/ben-l
 
-Like this script? Buy me a coffee:
-    https://venmo.com/theRealBenLawson
-    https://paypal.me/theRealBenLawson
+Like this script? Become a patron:
+    https://www.patreon.com/benscripts
 */
 
 var LootGenerator = LootGenerator || (function () {
@@ -15,7 +15,7 @@ var LootGenerator = LootGenerator || (function () {
 
     //---- INFO ----//
 
-    var version = '2.1',
+    var version = '2.1.1',
     debugMode = false,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 8px 10px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
