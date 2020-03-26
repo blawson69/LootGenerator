@@ -15,7 +15,7 @@ var LootGenerator = LootGenerator || (function () {
 
     //---- INFO ----//
 
-    var version = '2.1.1',
+    var version = '3.0',
     debugMode = false,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 8px 10px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
@@ -77,7 +77,7 @@ var LootGenerator = LootGenerator || (function () {
 			if (parms[1] && playerIsGM(msg.playerid)) {
 				switch (parms[1]) {
 					case '--setup':
-						commandSetup(msg);
+						commandSetup(msg.content);
 						break;
                     case '--config':
 						commandConfig(msg.content);
@@ -137,15 +137,15 @@ var LootGenerator = LootGenerator || (function () {
             mod = getMods(mod);
             dieroll = randomInteger(100);
 
-            if (mod.coins.search(/(show|less|more)/i) > -1) coins = generateCoins(modifyRoll(dieroll, 'coins', mod.coins), horde, level);
+            if (mod.coins.search(/(show|less|more)/i) > -1) coins = generateCoins(dieroll, mod.coins, horde, level);
             if (coins != '') loot.push(coins);
 
-            if (mod.mundane.search(/(show|less|more)/i) > -1) treasure.push(generateMundane(modifyRoll(dieroll, 'mundane', mod.mundane), horde, level));
+            if (mod.mundane.search(/(show|less|more)/i) > -1) treasure.push(generateMundane(dieroll, mod.mundane, horde, level));
 
             if (horde) {
-                if (mod.gems.search(/(show|less|more)/i) > -1) treasure.push(generateGems(modifyRoll(dieroll, 'gems', mod.gems), level));
-                if (mod.art.search(/(show|less|more)/i) > -1) treasure.push(generateArt(modifyRoll(dieroll, 'art', mod.art), level));
-                if (mod.magic.search(/(show|less|more)/i) > -1) treasure.push(generateMagicItems(modifyRoll(dieroll, 'magic', mod.magic), level));
+                if (mod.gems.search(/(show|less|more)/i) > -1) treasure.push(generateGems(dieroll, mod.gems, level));
+                if (mod.art.search(/(show|less|more)/i) > -1) treasure.push(generateArt(dieroll, mod.art, level));
+                if (mod.magic.search(/(show|less|more)/i) > -1) treasure.push(generateMagicItems(dieroll, mod.magic, level));
             }
             if (xtra != '') {
                 xtra = xtra.replace(/\\|\[|\]|\{|\}|\||\%|\$|\#|\@|\|/g, '');
@@ -233,6 +233,7 @@ var LootGenerator = LootGenerator || (function () {
                 var pm_potions = (usePotionManager()) ? _.pluck(PotionManager.getPotions(), 'name') : [];
                 var gear = (useGearManager()) ? _.pluck(GearManager.getGear(), 'name') : [];
                 _.each(loot.treasure, function (item) {
+                    item = item.replace(/<\/?(span|div|pre|img|code|b|i|h1|h2|h3|h4|h5|ol|ul|pre)[^>]*>/gi, '');
                     var tmp_item = '<a style=\'' + styles.textButton + '\' href="!loot --bestow --loot|' + item + ' --dest|sel --id|' + loot_id + '" title="Bestow ' + item + ' to the selected character">' + item + '</a>';
                     if (_.find(pm_potions, function (x) { return x == item; })) tmp_item += '&nbsp;<a style=\'' + styles.infoLink + '\' href="!loot --view-potion ' + item + '" title="View info on ' + item + '">i</a>';
                     if (_.find(gear, function (x) { return x == item; })) tmp_item += '&nbsp;<a style=\'' + styles.infoLink + '\' href="!loot --view-gear ' + item + '" title="View info on ' + item + '">i</a>';
@@ -474,8 +475,9 @@ var LootGenerator = LootGenerator || (function () {
         return newMods;
     },
 
-    generateCoins = function (index, horde, level) {
+    generateCoins = function (index, mod, horde, level) {
         // Returns a string with all coins
+        index = modifyRoll(index, mod);
         var coins = '';
         switch (level) {
             case '1':
@@ -527,8 +529,9 @@ var LootGenerator = LootGenerator || (function () {
         return coins;
     },
 
-    generateGems = function (index, level) {
+    generateGems = function (index, mod, level) {
         // Returns an array of gems
+        index = modifyRoll(index, mod);
         var count, gems = [];
         if (state['LootGenerator'].gems) {
             var size1 = _.size(state['LootGenerator'].gems.level1) - 1,
@@ -603,8 +606,9 @@ var LootGenerator = LootGenerator || (function () {
         return enumerateItems(gems);
     },
 
-    generateArt = function (index, level) {
+    generateArt = function (index, mod, level) {
         // Returns an array of art items
+        index = modifyRoll(index, mod);
         var count, art = [];
         if (state['LootGenerator'].art) {
             var size1 = _.size(state['LootGenerator'].art.level1) - 1,
@@ -674,8 +678,9 @@ var LootGenerator = LootGenerator || (function () {
         return enumerateItems(art);
     },
 
-    generateMundane = function (index, horde, level) {
+    generateMundane = function (index, mod, horde, level) {
         // Returns an array of magic items
+        index = modifyRoll(index, mod);
         var count, tmpItem, diceExp, tmpArray = [], items = [], err = false;
         if (state['LootGenerator'].mundane) {
             switch (level) {
@@ -789,8 +794,9 @@ var LootGenerator = LootGenerator || (function () {
         return items;
     },
 
-    generateMagicItems = function (index, level) {
+    generateMagicItems = function (index, mod, level) {
         // Returns an array of magic items
+        index = modifyRoll(index, mod);
         var count, tmpItem, diceExp, tmpArray = [], items = [], err = false;
         if (state['LootGenerator'].magic) {
             switch (level) {
@@ -1077,8 +1083,8 @@ var LootGenerator = LootGenerator || (function () {
 
     commandSetup = function (msg) {
 		// Build/Rebuild database of loot items
-        var reset, rx = /\-\-reset/gi;
-        if (rx.test(msg.content)) {
+        var rx = /\-\-reset/gi;
+        if (rx.test(msg)) {
             state['LootGenerator'].gems = null;
             state['LootGenerator'].art = null;
             state['LootGenerator'].mundane = null;
@@ -1375,11 +1381,11 @@ var LootGenerator = LootGenerator || (function () {
         return tmpItems;
     },
 
-    modifyRoll = function (roll, type, mods) {
+    modifyRoll = function (roll, mod) {
         // Returns a modified die roll based on the "more" and "less" commands
         var newRoll = roll;
-        if (mods.search('more-' + type) >= 0) newRoll = (roll >= 75) ? 100 : roll + 25;
-        if (mods.search('less-' + type) >= 0) newRoll = (roll <= 25) ? 1 : roll - 25;
+        if (mod.search('more-') >= 0) newRoll = (roll >= 75) ? 100 : roll + 25;
+        if (mod.search('less-') >= 0) newRoll = (roll <= 25) ? 1 : roll - 25;
         return newRoll;
     },
 
@@ -1513,7 +1519,12 @@ var LootGenerator = LootGenerator || (function () {
 
     return {
 		checkInstall: checkInstall,
-		registerEventHandlers: registerEventHandlers
+		registerEventHandlers: registerEventHandlers,
+        generateCoins: generateCoins,
+        generateMundane: generateMundane,
+        generateMagicItems: generateMagicItems,
+        getModDefaults: getMods,
+        saveLoot: saveLoot
 	};
 }());
 
