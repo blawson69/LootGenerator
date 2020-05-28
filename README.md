@@ -1,4 +1,5 @@
 # LootGenerator
+> New in version 3.1: Added a `--whisper` parameter to the [`--show` command](#--show) to hide the generated results from players.
 
 This [Roll20](http://roll20.net/) script generates loot according to the treasure tables in the Dungeon & Dragons 5th Edition Dungeon Master's Guide (DMG). It generates a random number (1d100) and displays the results in chat with options for showing the name of the character discovering the treasure, the name of the object from which the loot is taken, and more. LootGenerator will let you add your own special item to the generated loot, provides options for modifying the generation of each loot category, and allows you to import custom items to all loot categories.
 
@@ -36,13 +37,13 @@ The final button in the "Bestow" dialog allows all remaining coins and items to 
 - **[--import](#--import)**
 
 ## --show
-This command is the meat of the LootGenerator script. It generates treasure based on the DMG Treasure tables (plus the Mundane Items) and can be modified by various parameters. Each parameter begins with double dashes and uses a colon to separate the command from its contents. The `--show` command must follow `!loot`, but the remaining parameters (described below) can be called in any order.
+This command is the meat of the LootGenerator script. It generates treasure based on the DMG Treasure tables (plus the Mundane Items) and can be modified by various parameters. Each parameter begins with double dashes, and uses a colon to separate the command from its contents where applicable. The `--show` command must follow `!loot`, but the remaining parameters (described below) can be called in any order.
 
 #### --type
 *Mandatory.* There are 2 general types of loot: *Individual* and *Horde*. There are also 4 treasure levels based on the Challenge Rating (CR) of the monster(s)/NPC(s) from which the loot is coming: level 1 for CR 0-4, level 2 is CR 5-10, level 3 is CR 11-16, and level 4 is CR 17 and higher. The type and level are given together. For instance, passing `--type:Indiv1` will generate Individual loot for CR 0-4. `--type:Horde2` will generate Horde loot for CR 5-10, etc.
 
 #### --Loc
-*Optional.* This command is used to provide the name of the place where the loot was found. By sending `--loc:Pirate's Chest` you make the header read "Loot from Pirate's Chest". By default, the dialog sent to chat will display a simple header of "Loot".
+*Optional.* This parameter is used to provide the name of the place where the loot was found. By sending `--loc:Pirate's Chest` you make the header read "Loot from Pirate's Chest". By default, the dialog sent to chat will display a simple header of "Loot".
 
 #### --recip
 *Optional*. By default, the dialog sent to chat will simply show the list of loot items found. If you wish to indicate the name of the player who discovered the loot, use `--recip:` plus the character's name to display the name of the recipient before the list of loot items.
@@ -55,7 +56,7 @@ If you wish to pass more than one item, you may separate items with a comma. Not
 Note: Special items will always be mixed in with all other items.
 
 #### --mod
-*Optional.* This command is used to override the [defaults](#--config) for showing the Coins, Gems, Art, Mundane Item, and Magic Item categories, allowing you to fine tune or customize the loot generated. To eliminate a category, send "no-" and the category of item you wish to skip. Sending `--mod:no-gems` will prevent LootGenerator from generating gems. If your default is not to show Art items, for instance, you can send `--mod:show-art` to make the script generate art objects for the loot.
+*Optional.* This parameter is used to override the [defaults](#--config) for showing the Coins, Gems, Art, Mundane Item, and Magic Item categories, allowing you to fine tune or customize the loot generated. To eliminate a category, send "no-" and the category of item you wish to skip. Sending `--mod:no-gems` will prevent LootGenerator from generating gems. If your default is not to show Art items, for instance, you can send `--mod:show-art` to make the script generate art objects for the loot.
 
 You may also modify the results of the different categories by using the "less-" and "more-" prefixes. This will subtract or add, respectfully, 25 points from the die roll for each loot category you wish to modify. For instance, sending `--mod:more-coins` will add 25 to the die roll for the results of the Coins. If the script generates a die roll of 50, it will use 50 for every other loot category and 75 for the Coins. Keep in mind this does not double or halve the actual number of Items or Coins, it only returns results based on a much higher or lower die roll. For Magic Items, using "more-" could result in fewer but more powerful items.
 
@@ -68,7 +69,10 @@ The possible parameters for this command are:
 * 'no-magic', 'less-magic', 'more-magic', and 'show-magic'
 * 'no-coins', 'less-coins', and 'more-coins'
 
-Note: In keeping with the DMG guidelines, Gems, Art, and Magic Items are *only* available as Horde items. Passing `--mod:show-gems` with the `--type:Indiv1` command will still not generate Gems. Coins are the bare minimum for any loot, so there is no default for preventing Coins from being generated.
+Note: In keeping with the DMG guidelines, Gems, Art, and Magic Items are *only* available as Horde items. Passing `--mod:show-gems` with the `--type:Indiv1` parameter will still not generate Gems. Coins are the bare minimum for any loot, so there is no default for preventing Coins from being generated.
+
+#### --whisper
+_Optional._ This parameter allows the GM to skip output of the results to all players. When `--whisper` is given as a parameter, the GM-only "Bestow Items" dialog is all that is displayed. Everything else functions as normal.
 
 #### Examples
 ```
@@ -76,10 +80,11 @@ Note: In keeping with the DMG guidelines, Gems, Art, and Magic Items are *only* 
 !loot --show --type:Indiv1 --mod:less-gems,no-art
 !loot --show --loc:Dragon's Lair --type:Horde4
 !loot --show --type:Indiv2 --recip:Pip the Pickpocket --incl:Love Letter to Bryon
+!loot --show --type:Horde1 --mod:more-mundane --whisper
 ```
 
 ## --config
-Provides an interface for setting defaults for Gems, Art, Mundane and Magic Items the `--show` command, for setting whether to show PotionManager and GearManager descriptions to players, and for [exporting tables](#--export).
+Provides an interface for setting defaults on Gems, Art, Mundane and Magic Items for the `--show` command, for setting whether to show PotionManager and GearManager descriptions to players, and for [exporting tables](#--export).
 
 ## --setup
 Prior to first use, you must run this function to populate the loot database with items found in the treasure tables in the DMG and items from the PHB. After installation, you will receive a dialog with a button for running this command.
@@ -172,4 +177,5 @@ To provide customization options for Magic Items, Mundane Items, and Spells, exp
 
 Note: If you wish to reset the database to start another campaign and you have customized any of the tables, you can skip the [`--setup` command](#--setup) and simply re-import data from those tables.
 
-This script and its contents are permissible under the Wizards of the Coast's Fan Content Policy. Portions of the data used are property of and © Wizards of the Coast LLC.
+---
+_This script and its contents are permissible under the Wizards of the Coast's [Fan Content Policy](https://company.wizards.com/fancontentpolicy). Portions of the data used are property of and © Wizards of the Coast LLC._

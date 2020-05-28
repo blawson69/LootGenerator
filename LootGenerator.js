@@ -15,7 +15,7 @@ var LootGenerator = LootGenerator || (function () {
 
     //---- INFO ----//
 
-    var version = '3.0',
+    var version = '3.1',
     debugMode = false,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 8px 10px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
@@ -122,7 +122,7 @@ var LootGenerator = LootGenerator || (function () {
     commandGenerate = function (msg) {
         // Parse command and generate loot
         var dieroll, type, level = 0, horde, mod = '', loc = '', recip = '', message, title = 'Loot', loot = [], treasure = [], coins = '', xtra = '',
-        rm = /\-\-mod/gi, rx = /\-\-incl/gi, rl = /\-\-loc/gi, rr = /\-\-recip/gi, rd = /\d+/gi,
+        rm = /\-\-mod/gi, rx = /\-\-incl/gi, rl = /\-\-loc/gi, rr = /\-\-recip/gi, rd = /\d+/gi, rw = /\-\-whisper/gi,
         cmds = msg.content.split(/\s+\-\-/);
         if (rl.test(msg.content)) loc = _.find(cmds, function(tmpStr){ return tmpStr.toLowerCase().startsWith('loc:') }).split(':')[1].trim();
         if (rr.test(msg.content)) recip = _.find(cmds, function(tmpStr){ return tmpStr.toLowerCase().startsWith('recip:') }).split(':')[1].trim();
@@ -158,7 +158,7 @@ var LootGenerator = LootGenerator || (function () {
             title += (loc) ? ' from ' + loc : '';
             message = (recip) ? recip + ', you found: ' : 'You found: ';
             message += enumerateItems(loot).join(', ');
-            showDialog(title, message);
+            if (!rw.test(msg.content)) showDialog(title, message);
 
             saveLoot(title, coins, treasure, recip);
         } else {
