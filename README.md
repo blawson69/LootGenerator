@@ -26,7 +26,7 @@ LootGenerator is for use with the [5e Shaped Sheet](http://github.com/mlenser/ro
    - [examples](#examples)
 - [Exporting & Importing](#exporting--importing)
 - [Custom Items](#custom-items)
-   - [Magic & Mundane Items](#magi--mundane-items)
+   - [Magic & Mundane Items](#magic--mundane-items)
    - [Built-in Replacement Variables](#built-in-replacement-variables)
    - [Custom Replacement Variables](#custom-replacement-variables)
    - [Spells](#spells)
