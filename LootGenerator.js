@@ -15,7 +15,7 @@ var LootGenerator = LootGenerator || (function () {
 
     //---- INFO ----//
 
-    var version = '3.2',
+    var version = '3.2.1',
     debugMode = false,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 8px 10px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
@@ -42,6 +42,7 @@ var LootGenerator = LootGenerator || (function () {
             + '<br><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --setup --reset">Run Setup</a></div>');
         }
         if (typeof state['LootGenerator'].hideInfo == 'undefined') state['LootGenerator'].hideInfo = true;
+        if (typeof state['LootGenerator'].defaults.coins == 'undefined') state['LootGenerator'].defaults.coins = 'show-coins';
 
         if (typeof state['LootGenerator'].loot == 'undefined') state['LootGenerator'].loot = [];
         state['LootGenerator'].loot = _.reject(state['LootGenerator'].loot, function (x) { return x.coins == '' && _.size(x.treasure) == 0; });
