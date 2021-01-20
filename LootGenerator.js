@@ -1020,7 +1020,7 @@ var LootGenerator = LootGenerator || (function () {
         message += '<b style=\'' + styles.code + '\'>&lt;recipient&gt;:</b><br>Optional. The name of the character who found the loot.<br><br>';
         message += '<b style=\'' + styles.code + '\'>&lt;modifications&gt;:</b><br>Optional. Modifications (comma delimited) to the default parameters for generating loot. Possible values are <i>no-, less-, show-,</i> or <i>more-</i> followed by <i>coins, gems, art, mundane,</i> or <i>magic.</i><br>Examples: <i>more-coins</i> and <i>no-magic, less-art</i><br><br>';
         message += '<b style=\'' + styles.code + '\'>&lt;special_item&gt;:</b><br>Optional. One or more special items (comma delimited) to add to the loot.<br><br>';
-        message += '<b style=\'' + styles.code + '\'>--whisper:</b><br>Optional. Does not display results to players.<br><br>';
+        message += '<b style=\'' + styles.code + '\'>--whisper:</b><br>Optional. Whispers results to the recipient (if provided) or the GM.<br><br>';
         message += '<b style=\'' + styles.code + '\'>--test:</b><br>Optional. Whispers results to GM without saving list or removing unique items.<br><br>';
         message += 'See the <a style="' + styles.textButton + '" href="https://github.com/blawson69/LootGenerator">documentation</a> for complete instructions.';
         message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --config">Config Menu</a></div>';
