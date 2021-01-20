@@ -47,7 +47,7 @@ Unique magic items are automatically removed from the loot database after genera
 !loot --setup
 !loot --setup --reset
 ```
-If you wish to reset the database and you have already [customized](#custom-items) any of the tables, you can simply [re-import](#exporting--importing) data from those tables.
+If you reset the database and you have already [customized](#custom-items) any of the tables, you will need to [re-import](#exporting--importing) data from those tables.
 
 ## Configuration
 The config menu provides an interface for setting defaults on Coins, Gems, Art, Mundane and Magic Items (see [--mod](#--mod) for more info), provides a button for viewing the [unbestowed loot](#saved-loot) list, [exporting tables](#exporting--importing), and a link to help with the [`--show` command](#the-show-command).
