@@ -1,7 +1,12 @@
 # LootGenerator
-> **Changes in version 3.2:** Added a [--test](#--test) parameter to the show command. Added default setting for coins (excluding 'no-coins'). Added gaming sets to the Mundane Items, as well as adding a few missing tools. Corrected the Dragon Scale Mail entry to correctly provide a random dragon type, and the armor of resistance entries to correctly provide a random damage type. Removed a few cursed items that had snuck in uninvited.
+> **Changes in version 4.0:**
+> 1. Removed PotionManager and GearManager integration, replacing those scripts with the new [ItemDB](https://github.com/blawson69/ItemDB) for managing the addition of items to character sheets.
 >
-> Virtually all items in the database whose name contained parenthesis was modified to remove them, bringing them in line with the documented recommendations and preparing for a major upgrade currently in the works. If you have customized the database, it is **highly recommended** that you rename your modified handouts to preserve the contents, [reset the database](#initial-setup), export the new database, then re-customize the new handouts using the old ones. (Spells, Gems, and Art have not been changed. If you have customized these, you can simply delete the new ones and rename the old ones appropriately.)
+>    Note: Modifications have been made to the default item names to correspond to the ItemDB database. If you have customized the database, you _must reset_ your existing database to ensure proper function with or without ItemDB. First, rename your modified handouts to preserve their contents (they cannot begin with "Loot Generator:"). Then [reset the database](#initial-setup), [export](#exporting--importing) the relevant new tables (Spells, Gems, and Art have not been changed), then [re-customize](#custom-items) the new handouts using the old ones, making sure to use any new parameters that may apply.
+>
+> 2. The export function now accepts the `--tables` parameter to allow you to export select tables rather than the entire database.
+>
+> 3. Generated loot that used the `--whisper` command will now be whispered from the list of Unbestowed Loot.
 
 This [Roll20](http://roll20.net/) script generates loot according to the treasure tables in the Dungeon & Dragons 5th Edition Dungeon Master's Guide (DMG). It generates a random number (1d100) and displays the results in chat with options for showing the name of the character discovering the treasure, the name of the object from which the loot is taken, and more. LootGenerator will let you add your own special item to the generated loot, provides options for modifying the generation of each loot category, and allows you to import custom items to all loot categories.
 
@@ -34,18 +39,18 @@ LootGenerator is for use with the [5e Shaped Sheet](http://github.com/mlenser/ro
    - [Formatting Guidelines](#formatting-guidelines)
 
 ## Initial Setup
-Prior to first use, you **must** run this function to populate the loot database with items found in the treasure tables in the DMG and items from the PHB. After installation, you will receive a dialog with a button for running this command.
+Prior to first use, you **must** run the `--setup` function to populate the loot database with items found in the treasure tables in the DMG and items from the PHB. After initial installation, you will receive a dialog with a button for running this command.
 
-Unique magic items are automatically removed from the loot database after generation, so a reset option is provided to re-populate the database if necessary. To do so, pass the `--reset` modifier after the `--setup` command.
+Unique magic items are automatically removed from the loot database after generation, so a reset option is provided to re-populate the database if necessary, such as when starting a new campaign. To do so, pass the `--reset` modifier after the `--setup` command.
 
 ```
 !loot --setup
 !loot --setup --reset
 ```
-If you wish to reset the database to start another campaign and you have already [customized](#custom-items) any of the tables, you can simply [re-import](#exporting--importing) data from those tables.
+If you wish to reset the database and you have already [customized](#custom-items) any of the tables, you can simply [re-import](#exporting--importing) data from those tables.
 
 ## Configuration
-Provides an interface for setting defaults on Coins, Gems, Art, Mundane and Magic Items (see [--mod](#--mod) for more info), for setting whether to show PotionManager and GearManager descriptions to players, and for [exporting tables](#exporting--importing).
+The config menu provides an interface for setting defaults on Coins, Gems, Art, Mundane and Magic Items (see [--mod](#--mod) for more info), provides a button for viewing the [unbestowed loot](#saved-loot) list, [exporting tables](#exporting--importing), and a link to help with the [`--show` command](#the-show-command).
 
 ```
 !loot --config
@@ -63,14 +68,14 @@ You may use the `!loot --list` command to display a list of undistributed Treasu
 
 Each Treasure Collection is named based on the title generated by the show command. For instance, if you generate loot with the header "Loot from Pirate's Chest", The Treasure Collection will be remembered as "Loot from Pirate's Chest". Multiple uses of the same name will be numbered, so that another pirate's chest would give "Loot from Pirate's Chest 2". It is advisable, of course, to give each one a unique name from the start to avoid confusion later on.
 
-In the "Bestow" dialog displayed immediately after loot is generated, coins and treasure are in separate sections. Coins can be given to a selected character or, if [PurseStrings](#script-integration) is installed, either added to the individual character's Purse or distributed to Party Members. Treasure items can be given individually by clicking the name of the item with a token selected, or given as a whole to the selected character. If PotionManager and/or GearManager are installed, they will add all items that exist in their respective databases including any homebrew potions and custom items you may have added to those scripts. You will also get a link for displaying the description of those items which can be sent to the GM only or to all players (set in the [config dialog](#configuration)).
+In the "Bestow" dialog displayed immediately after loot is generated, coins and treasure are in separate sections. Coins can be given to a selected character or, if [PurseStrings](#script-integration) is installed, either added to the individual character's Purse or distributed to Party Members. Treasure items can be given individually by clicking the name of the item with a token selected, or given as a whole to the selected character. If ItemDB is installed, items will be added according to that script's configuration.
 
-Items not added via PotionManager or GearManager are written to the character sheet. For the 5e Shaped sheet, it is recorded in the Miscellaneous Notes field near the bottom. For the 5th Edition OGL sheet, it is recorded in the Treasure field in the Bio tab. In either case, the list of loot items will be preceded by name of the Treasure Collection in all caps followed by a colon so that players are reminded of where the items were found.
+Items not added via ItemDB are written to the character sheet. For the 5e Shaped sheet, it is recorded in the Miscellaneous Notes field near the bottom. For the 5th Edition OGL sheet, it is recorded in the Treasure field in the Bio tab. In either case, the list of loot items will be preceded by name of the Treasure Collection in all caps followed by a colon so that players are reminded of where the items were found.
 
 The final button in the "Bestow" dialog allows all remaining coins and items to be written to a "Party Loot" handout using the same name-and-colon convention above. Be aware, items in the handout can only be manually added (or dragged from the Compendium) to character sheets, so this function is best used as backup or for moving unbestowed treasure to another game rather than a primary loot distribution method.
 
 ## Script Integration
-LootGenerator will detect the presence of [PurseStrings](https://github.com/blawson69/PurseStrings) and will provide the GM a link for distributing coins. Also, if [PotionManager](https://github.com/blawson69/PotionManager) and/or [GearManager](https://github.com/blawson69/GearManager) are installed, LootGenerator will distribute associated items to characters according to those scripts. If you are using an older version of those scripts, you will be prompted to update them if you want to use their functionality.
+LootGenerator will detect the presence of [PurseStrings](https://github.com/blawson69/PurseStrings) and will provide the GM a link for distributing coins. If [ItemDB](https://github.com/blawson69/ItemDB) is installed, LootGenerator will distribute items to characters according to the ItemDB configuration options.
 
 ## The Show Command
 This command is the meat of the LootGenerator script. It generates treasure randomly based on the DMG Treasure tables, plus the Mundane Items, and can be modified by various parameters described below. Each parameter begins with double dashes, and uses a colon to separate the command from its contents where applicable.
@@ -112,7 +117,7 @@ The possible parameters for this command are:
 Note: In keeping with the DMG guidelines, Gems, Art, and Magic Items are *only* available as Horde items. Passing `--mod:show-gems` with the `--type:Indiv1` parameter will still not generate Gems. Coins are the bare minimum for any loot, so 'no-coins' is not an accepted default for Coins.
 
 #### --whisper
-_Optional._ This parameter allows the GM to skip output of the results to all players. When `--whisper` is given as a parameter, the GM-only ["Bestow Items" dialog](#distributing-loot) is all that is displayed. Everything else functions as normal.
+_Optional._ This parameter allows the GM to skip output of the results to all players. When `--whisper` is given as a parameter, the results are whispered only to the [recipient](#--recip) (if provided) or the GM.
 
 #### --test
 _Optional._ This parameter allows the GM to perform a "test run" on a show command. This parameter will only whisper the results to the GM. Generated treasure will not [be saved](#distributing-loot) and unique items will not [be removed](#initial-setup).
@@ -127,25 +132,35 @@ _Optional._ This parameter allows the GM to perform a "test run" on a show comma
 !loot --show --incl:King's Footlocker --type:Horde3 --mod:more-coins,more-magic --test
 ```
 
+## Saved Loot
+Each use of the [`--show`](#the-show-command) command saves the results in a Treasure Collection for later distribution. This includes the [recipient](#--recip) (if there was one) and whether or not the loot was [whispered](#--whisper).
+
+Once all items and coins are bestowed or saved to a handout, the saved loot is removed from memory. Until then, starting or restarting the API sandbox will display a list of unbestowed Treasure Collections which can be displayed and distributed or deleted entirely. The config menu will also tell you how many Treasure Collections remain unbestowed and provides a link to display the list.
+
+If you had whispered the loot through the `--show` command, the Treasure Collection will be whispered to the recipient, or to the GM if no recipient was given.
+
 ## Exporting & Importing
-To provide customization options for Magic Items, Mundane Items, and Spells, export and import options are provided. You must first export the data into handouts if you wish to add, remove, or modify items in the database. This will give you the proper format for your additional items and provides handouts with the proper titles that the import function will look for.
+To provide customization options, export and import options are provided. You must first export data into handouts if you wish to add, remove, or modify items in the database. This will give you the proper format for your additional items and provides handouts with the proper titles that the import function will look for.
+
+The required `--tables` parameter for the `--export` command is a comma delimited list. The options are *Gems, Art, Table A, Table B, Table C, Table D, Table E, Table F, Table G, Table H, Table I, Mundane*, and *Spells*. If you wish to add/modify the Mundane Items list, for example, you would export that table with `!loot --export --tables:Mundane`.
 
 **Note:** You _must_ run [`--setup`](#initial-setup) before exporting.
 
 ```
-!loot --export
+!loot --export --tables:Spells
+!loot --export --tables:Mundane, Art
 ```
 
 Once you have exported the tables you can edit them to your liking. Leave any original items you wish to use, delete those you don't want, and add your own [custom items](#custom-items).
 
-The required `--tables` parameter for the `--import` command is a comma delimited list of handouts to which you have made changes. The options are *Gems, Art, Table A, Table B, Table C, Table D, Table E, Table F, Table G, Table H, Table I, Mundane*, and *Spells*.
+The required `--tables` parameter for the `--import` command is the same as those above.
 
 ```
 !loot --import --tables:Spells
 !loot --import --tables:Table A, Mundane
 ```
 
-If you wish to reset the database to start another campaign and you have already [customized](#custom-items) any of the tables, you can simply re-import data from those tables.
+If you need to [reset the database](#initial-setup) to start another campaign and you have already [customized](#custom-items) any of the tables, you can simply re-import data from those tables after the reset.
 
 ## Custom Items
 LootGenerator provides a robust architecture for including homebrewed items of all sorts. Follow the guidelines below and use the default items as examples.
@@ -156,13 +171,17 @@ Magic & Mundane Items have a specific format that allows a weighted distribution
 There are many Magic Items that are unique and can only be found once during any campaign. To indicate this quality for your custom Items, send "unique" as the last parameter of the Magic Item. This item will then be removed from the database after it has been generated.
 
 The format for Magic & Mundane Items is "weight|name" or "weight|name|unique", each on a separate line in the handout.
+```
+10|My Item
+1|My Unique Item|unique
+```
 
 #### Built-In Replacement Variables
 The Magic & Mundane Items tables use a built-in replacement syntax that allows randomization of item names and the rolling of dice. You will encounter many of these in the [exported handouts](#exporting--importing), but only a few (below) will be relevant for use in your custom Items. Words surrounded by %% are randomized selectors, while any die expression such as 1d4 will be within @ signs.
 * **%%damage_types%%** will return a random damage type, such as Acid, Fire, or Necrotic.
 * **%%monster_types%%** will return a random monster type, such as Beast, Dragon, or Giant.
-* **%%swords%%** will return either Shortsword, Longsword, or Greatsword for magic swords.
-* **%%ammo%%** will return Arrow, Crossbow Bolt, Sling Bullet, or Blowgun Needle. Note that these are singular, so that any time you wish to produce multiples you will need an s after.
+* **%%swords%%** will return a random sword type, such as Shortsword, Longsword, or Greatsword.
+* **%%ammo%%** will return Arrow, Crossbow Bolt, Sling Bullet, or Blowgun Needle.
 
 Examples:
 
@@ -170,7 +189,7 @@ Examples:
 | ------------- |-------------|
 | *%%swords%%* of Yawning |Longsword of Yawning|
 |Potion of *%%damage_types%%* Breath|Potion of Thunder Breath|
-|Homing *%%ammo%%*s (*@1d4+1@*)|Homing Crossbow Bolts (3)|
+|Homing *%%ammo%%* (*@1d4+1@*)|Homing Crossbow Bolt (3)|
 
 #### Custom Replacement Variables
 You can use unique randomization in your own custom items by using $$ around a list of words or phrases separated by a tilde (~). LootGenerator will choose randomly from that list every time the custom item is generated. You may also use any of the built-in replacement variables inside your random options list to give it even more flavor.
@@ -192,9 +211,9 @@ The Spell tables are not weighted as the Magic Items are, but are a simple list 
 As with the Spell tables, these are simple lists of items based on the DMG tables. There are five levels based on perceived value with the headings in all caps followed by a colon. First level has the heading of "LEVEL 1:" and so on.
 
 #### Formatting Guidelines
-- Avoid commas in your custom Item names. They are used to separate items in the generated list of items. You will notice that default Item names that contain commas in the DMG tables have been modified to remove them. For instance, "Shield, +1" has been changed to "+1 Shield".
-- Avoid parenthesis. These are used by LootGenerator to denote multiples of items. Three Potions of Healing are generated as "Potion of Healing (3)." If an item has options, use a hyphen instead, i.e. "Ioun Stone - Protection."
-- Avoid the use of all replacement variable and syntax characters (:, |, %, @, $, ~).
+- **Do not use commas in your custom Item names.** They are used to separate items in the generated list of items. You will notice that default Item names that contain commas in the DMG tables have been modified to remove them. For instance, "Shield, +1" has been changed to "+1 Shield".
+- **Do not use parenthesis.** These are used by LootGenerator to denote multiples of items. Three Potions of Healing are generated as "Potion of Healing (3)." If an item has options, use a hyphen instead, i.e. "Ioun Stone - Protection."
+- **Do not use characters** used as replacement variable and syntax indicators (:, |, %, @, $, ~).
 
 ---
 _This script and its contents are permissible under the Wizards of the Coast's [Fan Content Policy](https://company.wizards.com/fancontentpolicy). Portions of the data used are property of and © Wizards of the Coast LLC._
