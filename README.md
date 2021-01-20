@@ -160,7 +160,7 @@ The required `--tables` parameter for the `--import` command is the same as thos
 !loot --import --tables:Table A, Mundane
 ```
 
-If you need to [reset the database](#initial-setup) to start another campaign and you have already [customized](#custom-items) any of the tables, you can simply re-import data from those tables after the reset.
+If you need to [reset the database](#initial-setup) to start another campaign and you have already [customized](#custom-items) any of the tables, you must re-import data from those tables after the reset.
 
 ## Custom Items
 LootGenerator provides a robust architecture for including homebrewed items of all sorts. Follow the guidelines below and use the default items as examples.
@@ -172,8 +172,8 @@ There are many Magic Items that are unique and can only be found once during any
 
 The format for Magic & Mundane Items is "weight|name" or "weight|name|unique", each on a separate line in the handout.
 ```
-10|My Item
-1|My Unique Item|unique
+10|Ukelele
+1|Ukelele of Wishes|unique
 ```
 
 #### Built-In Replacement Variables
