@@ -2,7 +2,7 @@
 > **Changes in version 4.0:**
 > 1. Removed PotionManager and GearManager script integration, replacing those scripts with the new [ItemDB](https://github.com/blawson69/ItemDB) script for managing the addition of items to character sheets.
 >
->    Note: Modifications have been made to the default item entries to correspond to the ItemDB database. You _must [reset](#initial-setup)_ your existing database to ensure proper function **whether or not you intend to use ItemDB.** If you have customized the LootGenerator database, you will need to follow these additional steps: First, rename your modified handouts to preserve their contents (they cannot begin with "Loot Generator:"). Then [export](#exporting--importing) the relevant tables (Spells, Gems, and Art have not been changed) and [re-customize](#custom-items) the new handouts using the old ones, making sure to use any new parameters that may apply.
+>    Note: Modifications have been made to the default item entries to correspond to the ItemDB database. You _must [reset](#initial-setup)_ your existing database to ensure proper function **whether or not you intend to use ItemDB.** If you have customized the LootGenerator database, you will need to follow these additional steps: First, rename your modified handouts to preserve their contents (they cannot begin with "Loot Generator:"). Then [export](#exporting--importing) the relevant tables (Spells, Gems, and Art have not been changed) and [re-customize](#custom-items) the new handouts using the old ones, making sure to use any new parameters that may apply. Finally, import your updated new handouts.
 >
 > 2. The export function now accepts the `--tables` parameter to allow you to export select tables rather than the entire database.
 >
