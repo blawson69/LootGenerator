@@ -47,7 +47,7 @@ Unique magic items are automatically removed from the loot database after genera
 !loot --setup
 !loot --setup --reset
 ```
-If you reset the database and you have already [customized](#custom-items) any of the tables, you will need to [re-import](#exporting--importing) data from those tables.
+If you reset the database and have already [customized](#custom-items) any of the tables, you will need to [re-import](#exporting--importing) data from those tables.
 
 ## Configuration
 The config menu provides an interface for setting defaults on Coins, Gems, Art, Mundane and Magic Items (see [--mod](#--mod) for more info), provides a button for viewing the [unbestowed loot](#saved-loot) list, [exporting tables](#exporting--importing), and a link to help with the [`--show` command](#the-show-command).
@@ -70,7 +70,7 @@ You may use the `!loot --list` command to display a list of undistributed Treasu
 
 In the "Bestow" dialog displayed immediately after loot is generated, coins and treasure are in separate sections. Coins can be given to a selected character or, if [PurseStrings](#script-integration) is installed, either added to the individual character's Purse or distributed to Party Members. Treasure items can be given individually by clicking the name of the item with a token selected, or given as a whole to the selected character. If [ItemDB](https://github.com/blawson69/ItemDB) is installed, items will be added according to that script's configuration.
 
-Items not added via PurseStrings or ItemDB are written to the character sheet. For the 5e Shaped sheet, it is recorded in the Miscellaneous Notes field near the bottom. For the 5th Edition OGL sheet, it is recorded in the Treasure field in the Bio tab. In either case, the list of loot items will be preceded by name of the Treasure Collection in all caps followed by a colon so that players are reminded of where the items were found.
+Items not added via PurseStrings or ItemDB are written to a notes section of the character sheet. For the 5e Shaped sheet, it is recorded in the Miscellaneous Notes field near the bottom. For the 5th Edition OGL sheet, it is recorded in the Treasure field in the Bio tab. In either case, the list of loot items will be preceded by name of the Treasure Collection in all caps followed by a colon so that players are reminded of where the items were found.
 
 The final button in the "Bestow" dialog allows all remaining coins and items to be written to a "Party Loot" handout using the same name-and-colon convention above. Be aware, items in the handout can only be manually added (or dragged from the Compendium) to character sheets, so this function is best used as backup or for moving unbestowed treasure to another game rather than a primary loot distribution method.
 
