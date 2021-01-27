@@ -37,14 +37,13 @@ var LootGenerator = LootGenerator || (function () {
         if (!_.has(state, 'LootGenerator')) {
             state['LootGenerator'] = state['LootGenerator'] || {};
             if (typeof state['LootGenerator'].defaults == 'undefined') state['LootGenerator'].defaults = {coins: 'show-coins', gems: 'show-gems', art: 'show-art', mundane: 'show-mundane', magic: 'show-magic'};
+            if (typeof state['LootGenerator'].loot == 'undefined') state['LootGenerator'].loot = [];
             if (typeof state['LootGenerator'].sheet == 'undefined') state['LootGenerator'].sheet = 'Unknown';
+            if (typeof state['LootGenerator'].hideInfo == 'undefined') state['LootGenerator'].hideInfo = true;
             adminDialog('Build Database', 'This is your first time using LootGenerator, so you must build the default treasure database. This must be done before any customization can occur. '
             + '<br><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --setup --reset">Run Setup</a></div>');
         }
-        if (typeof state['LootGenerator'].hideInfo == 'undefined') state['LootGenerator'].hideInfo = true;
-        if (typeof state['LootGenerator'].defaults.coins == 'undefined') state['LootGenerator'].defaults.coins = 'show-coins';
 
-        if (typeof state['LootGenerator'].loot == 'undefined') state['LootGenerator'].loot = [];
         state['LootGenerator'].loot = _.reject(state['LootGenerator'].loot, function (x) { return x.coins == '' && _.size(x.treasure) == 0; });
         commandUnbestowedList(true);
 
@@ -59,11 +58,14 @@ var LootGenerator = LootGenerator || (function () {
             }
         }
 
+        if (typeof state['LootGenerator'].mundane.swords != 'undefined' && !_.find(state['LootGenerator'].mundane.swords, function (x) {return x.name == 'Rapier';})) {
+            adminDialog('⚠️ Database Warning', 'You just upgraded LootGenerator. Congratulations! But before you use the new version, you <b>must reset</b> the database! View the <a style="' + styles.textButton + '" href="https://github.com/blawson69/LootGenerator">documentation</a> for complete instructions.');
+        }
+
         log('--> LootGenerator v' + version + ' <-- Initialized');
 		if (debugMode) {
             var d = new Date();
             adminDialog('Debug Mode', 'LootGenerator v' + version + ' loaded at ' + d.toLocaleTimeString() + '<br><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --config">Show Config</a></div>');
-            //state['LootGenerator'].loot = [];
         }
     },
 
@@ -157,7 +159,6 @@ var LootGenerator = LootGenerator || (function () {
 
             if (!test_run) {
                 var whispered = rw.test(msg.content);
-                log('whispered = ' + whispered);
                 if (whispered) showDialog(title, message, (recip ? recip : 'GM'));
                 else showDialog(title, message);
                 saveLoot(title, coins, treasure, recip, whispered);
@@ -1208,40 +1209,46 @@ var LootGenerator = LootGenerator || (function () {
 
     commandImport = function (msg) {
         // !loot --import --tables:Table A, Spells
-        var err = {probs: [], tables: []}, oldData, message, title, tables,
+        var oldData, message, title, tables,
         ra = /\-\-action/gi, rt = /\-\-tables/gi, cmds = msg.split('--');
         if (rt.test(msg)) tables = _.find(cmds, function(tmpStr){ return tmpStr.toLowerCase().startsWith('tables:') }).split(':')[1].trim().split(/,\s*/);
 
         if (tables) {
+            var doneTables = [], errs = [], warnings = [];
             var magic = [{heading:'Table A',table:'tableA'}, {heading:'Table B',table:'tableB'}, {heading:'Table C',table:'tableC'}, {heading:'Table D',table:'tableD'}, {heading:'Table E',table:'tableE'}, {heading:'Table F',table:'tableF'}, {heading:'Table G',table:'tableG'}, {heading:'Table H',table:'tableH'}, {heading:'Table I',table:'tableI'}];
+
             _.each(magic, function (level) {
-                var mNote = findObjs({name: 'Loot Generator: Magic ' + level.heading, type: 'handout'})[0];
-                if (mNote) {
-                    mNote.get('notes', function (notes) {
-                        var items = processHandout(notes);
-                        oldData = [];
-                        _.each(items, function (item) {
-                            if (item.search(/\|/) > 0) {
-                                let aItem = item.split('|'), tmpItem = {};
-                                if (!isNaN(aItem[0]) && aItem[1]) {
-                                    tmpItem.weight = parseInt(aItem[0]);
-                                    tmpItem.name = aItem[1].trim();
-                                    if (aItem[2] && aItem[2].toLowerCase().trim() == 'unique') tmpItem.unique = true;
-                                    oldData.push(tmpItem);
+                if (_.find(tables, function (x) {return level.heading == x;})) {
+                    var mNote = findObjs({name: 'Loot Generator: Magic ' + level.heading, type: 'handout'})[0];
+                    if (mNote) {
+                        mNote.get('notes', function (notes) {
+                            var items = processHandout(notes);
+                            oldData = [];
+                            _.each(items, function (item) {
+                                if (item.search(/\|/) > 0) {
+                                    let aItem = item.split('|'), tmpItem = {};
+                                    if (isNumber(aItem[0]) && typeof aItem[1] != 'undefined') {
+                                        tmpItem.weight = parseInt(aItem[0]);
+                                        tmpItem.name = aItem[1].trim();
+                                        if (typeof aItem[2] != 'undefined') {
+                                            if (aItem[2].toLowerCase().trim() == 'unique') tmpItem.unique = true;
+                                            else warnings.push('Magic ' + level.heading + ': <i>' + item + '</i><br><span style="color: orange;">Mispelling - Item not Unique.</span>');
+                                        }
+                                        oldData.push(tmpItem);
+                                    } else {
+                                        if (!isNumber(aItem[0])) errs.push('Magic ' + level.heading + ': <i>' + item + '</i><br><span style="color: red;">Weight missing or not a Number.</span>');
+                                        else errs.push('Magic ' + level.heading + ': <i>' + item + '</i><br><span style="color: red;">Incorrect format or missing information.</span>');
+                                    }
                                 } else {
-                                    err.probs.push('One or more Magic Items did not contain the minimum number of items.');
-                                    err.tables.push(level.heading);
+                                    errs.push('Magic ' + level.heading + ': <i>' + item + '</i><br><span style="color: red;">' + (item.length == 0 ? 'Blank line' : 'No pipe separators') + '.</span>');
                                 }
-                            } else {
-                                err.probs.push('One or more Magic Items did not contain any pipe separators.');
-                                err.tables.push(level.heading);
-                            }
+                            });
+                            state['LootGenerator'].magic[level.table] = oldData;
+                            doneTables.push(level.heading);
                         });
-                        state['LootGenerator'].magic[level.table] = oldData;
-                    });
-                } else {
-                    err.probs.push('One or more handouts do not exist.');
-                    err.tables.push(level.heading);
+                    } else {
+                        errs.push('"Loot Generator: Magic ' + level.heading + '" <span style="color: red;">handout does not exist.</span>');
+                    }
                 }
             });
 
@@ -1253,25 +1260,23 @@ var LootGenerator = LootGenerator || (function () {
                         _.each(items, function (item) {
                             if (item.search(/\|/) > 0) {
                                 let aItem = item.split('|'), tmpItem = {};
-                                if (!isNaN(aItem[0]) && aItem[1]) {
+                                if (isNumber(aItem[0]) && aItem[1] != '') {
                                     tmpItem.weight = parseInt(aItem[0]);
                                     tmpItem.name = aItem[1].trim();
-                                    if (aItem[2] && aItem[2].toLowerCase().trim() == 'unique') tmpItem.unique = true;
                                     oldData.push(tmpItem);
                                 } else {
-                                    err.probs.push('One or more Mundane Items did not contain the minimum number of items.');
-                                    err.tables.push('Mundane Items');
+                                    if (!isNumber(aItem[0])) errs.push('Mundane Items: <i>' + item + '</i><br><span style="color: red;">Weight must be a Number.</span>');
+                                    else errs.push('Mundane Items: <i>' + item + '</i><br><span style="color: red;">Incorrect format or missing information.</span>');
                                 }
                             } else {
-                                err.probs.push('One or more Mundane Items did not contain any pipe separators.');
-                                err.tables.push('Mundane Items');
+                                errs.push('Mundane Items: <i>' + item + '</i><br><span style="color: red;">' + (item.length == 0 ? 'Blank line' : 'No pipe separators') + '.</span>');
                             }
                         });
                         state['LootGenerator'].mundane.gear = oldData;
+                        doneTables.push('Mundane');
                     });
                 } else {
-                    err.probs.push('One or more handouts do not exist.');
-                    err.tables.push('Mundane Items');
+                    errs.push('"Loot Generator: Mundane Items" <span style="color: red;">handout does not exist.</span>');
                 }
             }
 
@@ -1280,23 +1285,27 @@ var LootGenerator = LootGenerator || (function () {
                 if (spNote) {
                     spNote.get('notes', function (notes) {
                         var items = processHandout(notes),
-                        levels = [{heading:'CANTRIPS:',level:'cantrips'}, {heading:'0 LEVEL:',level:'cantrips'}, {heading:'1ST LEVEL:',level:'level1'}, {heading:'2ND LEVEL:',level:'level2'}, {heading:'3RD LEVEL:',level:'level3'}, {heading:'4TH LEVEL:',level:'level4'}, {heading:'5TH LEVEL:',level:'level5'}, {heading:'6TH LEVEL:',level:'level6'}, {heading:'7TH LEVEL:',level:'level7'}, {heading:'8TH LEVEL:',level:'level8'}, {heading:'9TH LEVEL:',level:'level9'}];
+                        levels = [{heading:'CANTRIPS:',level:'cantrips'}, {heading:'1ST LEVEL:',level:'level1'}, {heading:'2ND LEVEL:',level:'level2'}, {heading:'3RD LEVEL:',level:'level3'}, {heading:'4TH LEVEL:',level:'level4'}, {heading:'5TH LEVEL:',level:'level5'}, {heading:'6TH LEVEL:',level:'level6'}, {heading:'7TH LEVEL:',level:'level7'}, {heading:'8TH LEVEL:',level:'level8'}, {heading:'9TH LEVEL:',level:'level9'}];
 
                         _.each(levels, function(level) {
                             if (_.find(items, function (x) { return x.search(level.heading) >= 0; })) {
                                 let index = _.indexOf(items, level.heading) + 1;
-                                if (items[index] && items[index].trim() != '') {
+                                if (items[index] && items[index].trim() != '' && !_.find(_.pluck(levels, 'heading'), function (x) {return x == items[index]})) {
                                     oldData = [];
                                     oldData.push(items[index].split(/,\s*/));
                                     oldData = _.flatten(oldData);
                                     state['LootGenerator'].spells[level.level] = oldData;
+                                } else {
+                                    errs.push('Spells: <span style="color: red;">' + level.heading.toLowerCase().replace(':', '') + ' spells empty or missing.</span>');
                                 }
+                            } else {
+                                errs.push('Spells: <span style="color: red;">' + level.heading.toLowerCase().replace(':', '') + ' spells not found.</span>');
                             }
                         });
                     });
+                    doneTables.push('Spells');
                 } else {
-                    err.probs.push('One or more handouts do not exist.');
-                    err.tables.push('Spells');
+                    errs.push('"Loot Generator: Spells" <span style="color: red;">handout does not exist.</span>');
                 }
             }
 
@@ -1310,18 +1319,22 @@ var LootGenerator = LootGenerator || (function () {
                         _.each(levels, function(level) {
                             if (_.find(items, function (x) { return x.search(level.heading) >= 0; })) {
                                 let index = _.indexOf(items, level.heading) + 1;
-                                if (items[index] && items[index].trim() != '') {
+                                if (items[index] && items[index].trim() != '' && !_.find(_.pluck(levels, 'heading'), function (x) {return x == items[index]})) {
                                     oldData = [];
                                     oldData.push(items[index].split(/,\s*/));
                                     oldData = _.flatten(oldData);
                                     state['LootGenerator'].gems[level.level] = oldData;
+                                } else {
+                                    errs.push('Gems: <span style="color: red;">' + level.heading.toLowerCase().replace(':', '') + ' gems empty or missing.</span>');
                                 }
+                            } else {
+                                errs.push('Gems: <span style="color: red;">' + level.heading.toLowerCase().replace(':', '') + ' gems not found.</span>');
                             }
                         });
                     });
+                    doneTables.push('Gems');
                 } else {
-                    err.probs.push('One or more handouts do not exist.');
-                    err.tables.push('Gems');
+                    errs.push('"Loot Generator: Gems" <span style="color: red;">handout does not exist.</span>');
                 }
             }
 
@@ -1335,42 +1348,58 @@ var LootGenerator = LootGenerator || (function () {
                         _.each(levels, function(level) {
                             if (_.find(items, function (x) { return x.search(level.heading) >= 0; })) {
                                 let index = _.indexOf(items, level.heading) + 1;
-                                if (items[index] && items[index].trim() != '') {
+                                if (items[index] && items[index].trim() != '' && !_.find(_.pluck(levels, 'heading'), function (x) {return x == items[index]})) {
                                     oldData = [];
                                     oldData.push(items[index].split(/,\s*/));
                                     oldData = _.flatten(oldData);
                                     state['LootGenerator'].art[level.level] = oldData;
+                                } else {
+                                    errs.push('Art: <span style="color: red;">' + level.heading.toLowerCase().replace(':', '') + ' art empty or missing.</span>');
                                 }
+                            } else {
+                                errs.push('Art: <span style="color: red;">' + level.heading.toLowerCase().replace(':', '') + ' art not found.</span>');
                             }
                         });
                     });
+                    doneTables.push('Art');
                 } else {
-                    err.probs.push('One or more handouts do not exist.');
-                    err.tables.push('Art');
+                    errs.push('"Loot Generator: Art" <span style="color: red;">handout does not exist.</span>');
                 }
             }
-        } else {
-            err.probs.push('The minimum parameters were not provided for import.');
-        }
 
-        if (err.probs.length && err.probs.length > 0) {
-            err.probs = _.unique(err.probs);
-            err.tables = _.unique(err.tables);
-            title = 'Import Error';
-            message = 'The following errors were encountered during import:<ul><li>' + err.probs.join('</li><li>') + '</li></ul>';
-            if (err.tables.length && err.tables.length > 0) message += 'These errors occured for these tables:' + err.tables.join(', ') + '.<br><br>';
-            if (_.find(err.probs, function(x) { return x.search('pipe') >= 0 || x.search('number of items') >= 0; })) message += 'Each magic item should follow this format:<div style=\'' + styles.code + '\'>weight|Item Name</div> or <div style=\'' + styles.code + '\'>weight|Item Name|unique</div>';
-            if (_.find(err.probs, function(x) { return x.search('minimum parameters') >= 0; })) message += 'The import syntax is as follows:<br>'
-            + '<div style=\'' + styles.code + '\'>!loot --import --tables:Table A, Spells</div>';
-        } else {
-            title = 'Import Complete';
-            message = 'Items have been successfully imported to the following tables: ' + tables.join(', ') + '.';
-        }
+            setTimeout(function () {
+                title = 'Import Complete';
+                message = 'Items have been successfully imported to the following tables: ' + doneTables.join(', ') + '.';
 
-        adminDialog(title, message);
+                if (_.size(errs) != 0 || _.size(warnings) != 0) message += '<br><br><div style=\'' + styles.title + '\'>However...</div>';
+
+                if (_.size(warnings) != 0) {
+                    message += '<p>The following items may not have imported as expected:<ul><li>' + warnings.join('</li><li>') + '</li></ul></p>';
+                }
+
+                if (_.size(errs) != 0) {
+                    message += '<p>The following errors were encountered during import:<ul><li>' + errs.join('</li><li>') + '</li></ul></p>';
+
+                    if (_.find(errs, function(x) { return x.search('pipe') >= 0 || x.search('format') >= 0; })) message += '<p>Each Magic or Mundane item should follow this format:<div style=\'' + styles.code + '\'>Weight|Item Name</div>or <div style=\'' + styles.code + '\'>Weight|Item Name|"unique"</div>';
+                    message += '<br>See the <a style="' + styles.textButton + '" href="https://github.com/blawson69/LootGenerator">documentation</a> for complete instructions.</p>';
+                }
+                adminDialog(title, message);
+            }, 500);
+        } else {
+            message = 'The minimum parameters were not provided for import.<br><br>The import syntax is as follows:<br><div style=\'' + styles.code + '\'>!loot --import --tables:<table_name>[, &lt;table_name&gt;[...]]</div>example:<br><div style=\'' + styles.code + '\'>!loot --import --tables:Table A, Spells, Mundane</div>';
+            message += '<br>See the <a style="' + styles.textButton + '" href="https://github.com/blawson69/LootGenerator">documentation</a> for complete instructions.';
+            adminDialog('Import Error', message);
+        }
     },
 
     //---- UTILITY FUNCTIONS ----//
+
+    isNumber = function (num) {
+        var retval;
+        if (typeof num == 'number') retval = true;
+        else if (typeof num == 'string') retval = (num.match(/^\d+$/i) !== null);
+        return retval;
+    },
 
     enumerateItems = function (items) {
         // Collects multiple instances into one instance with an item count
@@ -1454,9 +1483,9 @@ var LootGenerator = LootGenerator || (function () {
     processHandout = function (notes = '') {
         var retval = [], text = notes.trim();
         text = text.replace(/<p[^>]*>/gi, '<p>').replace(/\n(<p>)?/gi, '</p><p>').replace(/<br>/gi, '</p><p>');
-        text = text.replace(/<\/?(span|div|pre|img|code|b|i|h1|h2|h3|h4|h5|ol|ul|pre)[^>]*>/gi, '');
+        text = text.replace(/<\/?(span|div|pre|img|code|br|b|i|h1|h2|h3|h4|h5|ol|ul|pre)[^>]*>/gi, '');
         if (text != '' && /<p>.*?<\/p>/g.test(text)) retval = text.match(/<p>.*?<\/p>/g).map( l => l.replace(/^<p>(.*?)<\/p>$/,'$1'));
-        return retval;
+        return _.compact(retval);
     },
 
     detectSheet = function () {

@@ -170,10 +170,10 @@ Magic & Mundane Items have a specific format that allows a weighted distribution
 
 There are many Magic Items that are unique and can only be found once during any campaign. To indicate this quality for your custom Items, send "unique" as the last parameter of the Magic Item. This item will then be removed from the database after it has been generated.
 
-The format for Magic & Mundane Items is "weight|name" or "weight|name|unique", each on a separate line in the handout.
+The format for Magic & Mundane Items is "weight|name" or "weight|name|_unique_", each on a separate line in the handout.
 ```
-10|Ukelele
-1|Ukelele of Wishes|unique
+10|Ukulele
+1|Ukulele of Wishes|unique
 ```
 
 #### Built-In Replacement Variables
@@ -205,7 +205,13 @@ Examples:
 *Be careful when editing exported handouts! Leaving out a replacement variable character, or using one in an Item description without actually using it as a replacement variable, can break the script.*
 
 #### Spells
-The Spell tables are not weighted as the Magic Items are, but are a simple list of all available spells that are used to generate spell scrolls. Each level of spell is a comma delimited list on one line with a heading designating the level of the spells in the list. These headings are in ALL CAPS followed by a colon and also on their own line. "CANTRIPS:" or "0 LEVEL:" are allowed for cantrips, while the remainder should be "1ST LEVEL:" and so on.
+The Spell tables are not weighted as the Magic Items are, but are a simple list of all available spells that are used to generate spell scrolls. Each level of spell is a comma delimited list on one line preceded by a heading designating the level of the spells in the list. These headings are in ALL CAPS followed by a colon and also on their own line: "CANTRIPS:", "1ST LEVEL:", "2ND LEVEL" and so on.
+```
+CANTRIPS:
+Acid Splash, Blade Ward, Chill Touch, Dancing Lights, Druidcraft, Eldritch Blast
+1ST LEVEL:
+Alarm, Animal Friendship, Armor of Agathys, Arms of Hadar, Bane, Bless, Burning Hands
+```
 
 #### Gems & Art
 As with the Spell tables, these are simple lists of items based on the DMG tables. There are five levels based on perceived value with the headings in all caps followed by a colon. First level has the heading of "LEVEL 1:" and so on.
