@@ -110,7 +110,9 @@ var LootGenerator = LootGenerator || (function () {
                     default:
 						commandHelp();
 				}
-			}
+			} else {
+                if (playerIsGM(msg.playerid)) commandHelp();
+            }
 		}
     },
 
@@ -1022,9 +1024,9 @@ var LootGenerator = LootGenerator || (function () {
         message += '<b style=\'' + styles.code + '\'>&lt;modifications&gt;:</b><br>Optional. Modifications (comma delimited) to the default parameters for generating loot. Possible values are <i>no-, less-, show-,</i> or <i>more-</i> followed by <i>coins, gems, art, mundane,</i> or <i>magic.</i><br>Examples: <i>more-coins</i> and <i>no-magic, less-art</i><br><br>';
         message += '<b style=\'' + styles.code + '\'>&lt;special_item&gt;:</b><br>Optional. One or more special items (comma delimited) to add to the loot.<br><br>';
         message += '<b style=\'' + styles.code + '\'>--whisper:</b><br>Optional. Whispers results to the recipient (if provided) or the GM.<br><br>';
-        message += '<b style=\'' + styles.code + '\'>--test:</b><br>Optional. Whispers results to GM without saving list or removing unique items.<br><br>';
+        message += '<b style=\'' + styles.code + '\'>--test:</b><br>Optional. Whispers results to GM without saving list or removing unique items.';
+        message += '<hr style=\'' + styles.hr + '\'>';
         message += 'See the <a style="' + styles.textButton + '" href="https://github.com/blawson69/LootGenerator">documentation</a> for complete instructions.';
-        message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --config">Config Menu</a></div>';
         adminDialog('Help Menu', message);
     },
 
@@ -1063,14 +1065,8 @@ var LootGenerator = LootGenerator || (function () {
             //if (useItemDB()) message += '<br><b>ItemDB Info:</b> Info links in the Bestow dialog will show item descriptions to <b>' + (state['LootGenerator'].hideInfo ? 'GM only' : 'all players') + '</b>. <a style="' + styles.textButton + '" href="!loot --config --toggle-view">change</a><br>';
 
             message += '<hr style=\'' + styles.hr + '\'>';
-
-            message += '<div style=\'' + styles.title + '\'>Import/Export</div>';
-            message += '<div style=\'' + styles.buttonWrapper + 'color:#c00; margin-top: 0;\'>⚠️ <i>Warning: This will overwrite any edited handouts you may not have imported yet.</i></div>';
-            message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --export">Export Data</a></div>';
-            message += '<br>Syntax for importing is as follows (all on one line): <div style=\'' + styles.code + '\'>!loot --import --tables:table_name[, table_name]</div><br>';
             message += 'See the <a style="' + styles.textButton + '" href="https://github.com/blawson69/LootGenerator">documentation</a> for complete instructions.';
 
-            message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --help">Help Menu</a></div>';
             adminDialog('', message);
         }
     },
