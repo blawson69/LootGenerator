@@ -163,7 +163,7 @@ The required `--tables` parameter for the `--import` command is the same as thos
 If you need to [reset the database](#initial-setup) and have already [customized](#custom-items) any of the tables, you must re-import data from those tables after the reset.
 
 ## Custom Items
-LootGenerator provides a robust architecture for including homebrewed items of all sorts. Follow the guidelines below and use the default items as examples.
+LootGenerator provides a robust architecture for including homebrewed items of all sorts. Follow the guidelines below. For simplicity, it is recommended that you [export](#exporting--importing) the tables you wish to modify and use those default items as examples.
 
 #### Magic & Mundane Items
 Magic & Mundane Items have a specific format that allows a weighted distribution. For instance, Items with a weight of 2 will be twice as likely to be encountered as an item with a weight of 1. The default Magic Items have a weight value based on the d100 roll from the DMG tables, so be aware that adding a large number of new items will skew those weights accordingly. Mundane Items are weighted on their general usefulness, size, cost, etc.
