@@ -57,9 +57,9 @@ The config menu provides an interface for setting defaults on Coins, Gems, Art, 
 ```
 
 ## Notable Exclusions
-Because LootGenerator in designed to share item identities with players, all _cursed items_ are absent from the database. If you wish to include cursed items you may do so in many ways. The first (and recommended method) is to simply choose a normal item on the fly from the generated results to be secretly cursed. Most SRD/DMG cursed items are simply cursed versions of another item, so this method allows for the misidentification aspect of the requisite cursed version. The second way is to add the cursed item in with your [imported](#exporting--importing) custom items, and thirdly you can include it as a special item in the [`--show`](#the-show-command) command.
+Because LootGenerator in designed to share item identities with players, all _cursed items_ are absent from the database. If you wish to include cursed items you may do so in many ways. The first (and recommended method) is to simply choose a normal item on the fly from the generated results to be secretly cursed. Most SRD/DMG cursed items are simply cursed versions of another item, so this method allows for the misidentification aspect of the requisite cursed version. The second way is to add the cursed item in with your [imported](#exporting--importing) custom items, and thirdly you can include it as a [special item](#--incl) in the [`--show`](#the-show-command) command.
 
-Finally, because of its large size the _Apparatus of Kwalish_ is not in the database. For the same reason, large and/or bulky Mundane Items such as the 10-foot ladder are also not included.
+Finally, because of its large size the _Apparatus of Kwalish_ is not in the database. For the same reason, large and/or bulky Mundane Items such as the 10-foot ladder are also not included. To include these items, you can use the [--incl](#--incl) parameter or import them as a custom item.
 
 ## Distributing Loot
 Each call of the show command ([below](#the-show-command)) creates a Treasure Collection that is remembered until all treasure in the Collection has been bestowed or saved. If you do not wish to take the time to distribute treasure when it is found, you can return to it at a later time in various ways.
