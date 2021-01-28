@@ -6,7 +6,7 @@
 >
 > 2. The export function now accepts the `--tables` parameter to allow you to export select tables rather than the entire database.
 >
-> 3. Generated loot that used the `--whisper` parameter in the initial [show command](#the-show-command) will now be whispered when selected from the list of Unbestowed Loot.
+> 3. Generated loot that used the `--whisper` parameter in the initial [show command](#the-show-command) will now be whispered when selected from the list of Unbestowed Loot. Note: This **does not** apply to previously generated loot.
 >
 > 4. Added more [replacement variables](#built-in-replacement-variables) for your custom Magic Items.
 >
