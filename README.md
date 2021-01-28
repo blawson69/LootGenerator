@@ -4,13 +4,13 @@
 >
 >    Note: Modifications have been made to the default item entries to correspond to the ItemDB database. You _must [reset](#initial-setup)_ your existing database to ensure proper function **whether or not you intend to use ItemDB.** If you have customized the LootGenerator database, you will need to follow these additional steps: First, rename your modified handouts to preserve their contents (they cannot begin with "Loot Generator:"). Then [export](#exporting--importing) the relevant tables (Spells, Gems, and Art have not been changed) and [re-customize](#custom-items) the new handouts using the old ones, making sure to use any new parameters that may apply. Finally, import your updated new handouts.
 >
-> 2. The export function now accepts the `--tables` parameter to allow you to export select tables rather than the entire database.
+> 2. The export function now requires the `--tables` parameter to allow you to export select tables rather than the entire database.
 >
 > 3. Generated loot that used the `--whisper` parameter in the initial [show command](#the-show-command) will now be whispered when selected from the list of Unbestowed Loot. Note: This **does not** apply to previously generated loot.
 >
 > 4. Added more [replacement variables](#built-in-replacement-variables) for your custom Magic Items.
 >
-> 5. Added a new [mod](#--mod) option for generating double items.
+> 5. Added a new [mod](#--mod) option for generating double items and coins.
 
 This [Roll20](http://roll20.net/) script generates loot according to the treasure tables in the Dungeon & Dragons 5th Edition Dungeon Master's Guide (DMG). It generates a random number (1d100) and displays the results in chat with options for showing the name of the character discovering the treasure, the name of the object from which the loot is taken, and more. LootGenerator will let you add your own special item to the generated loot, provides options for modifying the generation of each loot category, and allows you to import custom items to all loot categories.
 
