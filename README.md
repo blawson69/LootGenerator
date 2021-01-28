@@ -7,6 +7,10 @@
 > 2. The export function now accepts the `--tables` parameter to allow you to export select tables rather than the entire database.
 >
 > 3. Generated loot that used the `--whisper` parameter in the initial [show command](#the-show-command) will now be whispered when selected from the list of Unbestowed Loot.
+>
+> 4. Added more [replacement variables](#built-in-replacement-variables) for your custom Magic Items.
+>
+> 5. Added a new [mod](#--mod) option for generating double items.
 
 This [Roll20](http://roll20.net/) script generates loot according to the treasure tables in the Dungeon & Dragons 5th Edition Dungeon Master's Guide (DMG). It generates a random number (1d100) and displays the results in chat with options for showing the name of the character discovering the treasure, the name of the object from which the loot is taken, and more. LootGenerator will let you add your own special item to the generated loot, provides options for modifying the generation of each loot category, and allows you to import custom items to all loot categories.
 
@@ -105,14 +109,16 @@ Note: Special items will always be mixed in with all other items.
 
 You may also modify the results of the different categories by using the "less-" and "more-" prefixes. This will subtract or add, respectfully, 25 points from the die roll for each loot category you wish to modify. For instance, sending `--mod:more-coins` will add 25 to the die roll for the results of the Coins. In this example, if the script generates a die roll of 50, it will use 50 for every other loot category and 75 for the Coins. Keep in mind this does not double or halve the actual number of Items or Coins, it only returns results based on a much higher or lower die roll. For Magic Items, using "more-" could result in fewer but more powerful items.
 
+You can double the results from the different categories by using the "dbl-" prefix. For coins, this will double the amount each generated denomination. For the rest, it will randomly generate items two times rather than once. Due to the random nature of the generator, this is as close as you can get to generating twice the number of items.
+
 You can modify more than one category by sending multiple parameters separated with a comma. Sending `--mod:no-gems,show-mundane` will override any defaults to Gems and Mundane Items to skip Gems and include Mundane Items.
 
 The possible parameters for this command are:
-* 'no-gems', 'less-gems', 'more-gems', and 'show-gems'
-* 'no-art', 'less-art', 'more-art', and 'show-art'
-* 'no-mundane', 'less-mundane', 'more-mundane', and 'show-mundane'
-* 'no-magic', 'less-magic', 'more-magic', and 'show-magic'
-* 'no-coins', 'less-coins', 'more-coins', and 'show-coins'
+* 'no-gems', 'less-gems', 'more-gems', 'dbl-gems', and 'show-gems'
+* 'no-art', 'less-art', 'more-art', 'dbl-art', and 'show-art'
+* 'no-mundane', 'less-mundane', 'more-mundane', 'dbl-mundane', and 'show-mundane'
+* 'no-magic', 'less-magic', 'more-magic', 'dbl-magic', and 'show-magic'
+* 'no-coins', 'less-coins', 'more-coins', 'dbl-coins', and 'show-coins'
 
 Note: In keeping with the DMG guidelines, Gems, Art, and Magic Items are *only* available as Horde items. Passing `--mod:show-gems` with the `--type:Indiv1` parameter will still not generate Gems. Coins are the bare minimum for any loot, so 'no-coins' is not an accepted default for Coins.
 
@@ -177,11 +183,14 @@ The format for Magic & Mundane Items is "weight|name" or "weight|name|_unique_",
 ```
 
 #### Built-In Replacement Variables
-The Magic & Mundane Items tables use a built-in replacement syntax that allows randomization of item names and the rolling of dice. You will encounter many of these in the [exported handouts](#exporting--importing), but only a few (below) will be relevant for use in your custom Items. Words surrounded by %% are randomized selectors, while any die expression such as 1d4 will be within @ signs.
+The Magic & Mundane Items tables use a built-in replacement syntax that allows randomization of item names and the rolling of dice. You will encounter many of these in the [exported handouts](#exporting--importing), but only a few (below) will be relevant for use in your custom Magic Items. Words surrounded by %% are randomized selectors, while any die expression such as 1d4 will be within @ signs.
 * **%%damage_types%%** will return a random damage type, such as Acid, Fire, or Necrotic.
 * **%%monster_types%%** will return a random monster type, such as Beast, Dragon, or Giant.
+* **%%dragon_types%%** will return a random dragon type, such as Black, Copper, or Red.
 * **%%swords%%** will return a random sword type, such as Shortsword, Longsword, or Greatsword.
 * **%%ammo%%** will return Arrow, Crossbow Bolt, Sling Bullet, or Blowgun Needle.
+* **%%leather_armor%%** will return all armor types made with little to no metal, such as Leather Armor, Hide Armor, or Padded Armor.
+* **%%metal_armor%%** will return all armor types made primarily with metal, such as Breastplate, Chain Mail, or Plate Armor.
 
 Examples:
 
@@ -190,6 +199,20 @@ Examples:
 | *%%swords%%* of Yawning |Longsword of Yawning|
 |Potion of *%%damage_types%%* Breath|Potion of Thunder Breath|
 |Homing *%%ammo%%* (*@1d4+1@*)|Homing Crossbow Bolt (3)|
+
+In addition, there are extra replacement variables that aren't used in the default database which may be useful for your custom Magic Items. These are used the same as those mentioned above:
+* **%%bludgeoning_weapons%%** will return all weapons that do bludgeoning damage, such as Club, Quarterstaff, or Mace.
+* **%%piercing_weapons%%** will return all weapons that do piercing damage, such as Shortsword, Morningstar, or Longbow.
+* **%%slashing_weapons%%** will return all weapons that do slashing damage, such as Longsword, Battleaxe, or Whip.
+* **%%twohanded_weapons%%** will return all weapons that have the two-handed property, such as Greataxe, Longbow, or Pike.
+* **%%thrown_weapons%%** will return all weapons that have the thrown property, such as Dagger, Javelin, or Net.
+* **%%finesse_weapons%%** will return all weapons that have the finesse property, such as Shortsword, Dart, or Whip.
+* **%%versatile_weapons%%** will return all weapons that have the versatile property, such as Longsword, Quarterstaff, or Spear.
+* **%%light_weapons%%** will return all weapons that have the light property, such as Shortsword, Hand Crossbow, or Dagger.
+* **%%heavy_weapons%%** will return all weapons that have the heavy property, such as Greatsword, Longbow, or Pike.
+* **%%light_armor%%** will return all light armor, such as Leather Armor or Padded Armor.
+* **%%medium_armor%%** will return all medium armor, such as Hide Armor, Breastplate, or Chain Shirt.
+* **%%heavy_armor%%** will return all heavy armor, such as Splint Armor, Ring Mail, or Plate Armor.
 
 #### Custom Replacement Variables
 You can use unique randomization in your own custom items by using $$ around a list of words or phrases separated by a tilde (~). LootGenerator will choose randomly from that list every time the custom item is generated. You may also use any of the built-in replacement variables inside your random options list to give it even more flavor.
