@@ -109,7 +109,7 @@ Note: Special items will always be mixed in with all other items.
 
 You may also modify the results of the different categories by using the "less-" and "more-" prefixes. This will subtract or add, respectfully, 25 points from the die roll for each loot category you wish to modify. For instance, sending `--mod:more-coins` will add 25 to the die roll for the results of the Coins. In this example, if the script generates a die roll of 50, it will use 50 for every other loot category and 75 for the Coins. Keep in mind this does not double or halve the actual number of Items or Coins, it only returns results based on a much higher or lower die roll. For Magic Items, using "more-" could result in fewer but more powerful items.
 
-You can double the results from the different categories by using the "dbl-" prefix. For coins, this will double the amount each generated denomination. For the rest, it will randomly generate items two times rather than once. Due to the random nature of the generator, this is as close as you can get to generating twice the number of items.
+You can double the results from the different categories by using the "dbl-" prefix. For coins, this will double the amount for each generated denomination. For the rest, it will randomly generate items two times rather than once. Due to the random nature of the generator, this is as close as you can get to generating twice the number of items.
 
 You can modify more than one category by sending multiple parameters separated with a comma. Sending `--mod:no-gems,show-mundane` will override any defaults to Gems and Mundane Items to skip Gems and include Mundane Items.
 
