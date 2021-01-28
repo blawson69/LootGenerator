@@ -216,7 +216,7 @@ var LootGenerator = LootGenerator || (function () {
     },
 
     commandDispense = function (msg) {
-        var parms = msg.trim().split(/\s*\-\-/i), loot_id = '', delLoot = false;
+        var parms = msg.trim().split(/\s+\-\-/i), loot_id = '', delLoot = false;
         _.each(parms, function (x) {
             var parts = x.split(/\s*\|\s*/i);
             if (parts[0] == 'id' && parts[1] != '') loot_id = parts[1];
@@ -277,7 +277,7 @@ var LootGenerator = LootGenerator || (function () {
     },
 
     commandBestow = function (msg) {
-        var parms = msg.content.trim().split(/\s*\-\-/i), loot_id, loot_item, dest;
+        var parms = msg.content.trim().split(/\s+\-\-/i), loot_id, loot_item, dest;
         _.each(parms, function (x) {
             var parts = x.split(/\s*\|\s*/i);
             if (parts[0] == 'id' && parts[1] != '') loot_id = parts[1];
@@ -1065,7 +1065,7 @@ var LootGenerator = LootGenerator || (function () {
 
     commandConfig = function (msg) {
         // Set default options for loot generation
-        var parms = msg.replace('!loot --config', '').split(/\s*\-\-/i);
+        var parms = msg.replace('!loot --config', '').split(/\s+\-\-/i);
         _.each(parms, function (x) {
             var parts = x.trim().split(/\s*\|\s*/i);
             if (parts[0] == 'toggle-view') state['LootGenerator'].hideInfo = !state['LootGenerator'].hideInfo;
