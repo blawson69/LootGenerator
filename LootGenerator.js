@@ -154,7 +154,7 @@ var LootGenerator = LootGenerator || (function () {
                 if (mod.magic == 'dbl-magic') treasure.push(generateMagicItems(dieroll, mod.magic, level, test_run));
             }
             if (xtra != '') {
-                xtra = xtra.replace(/[^a-zA-Z\s\,\'\*]/g, '');
+                xtra = xtra.replace(/[^a-zA-Z0-9\s\,\'\*]/g, '');
                 treasure.push(xtra.split(/\s*,\s*/));
             }
 
