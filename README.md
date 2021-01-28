@@ -135,7 +135,7 @@ _Optional._ This parameter allows the GM to perform a "test run" on a show comma
 !loot --show --loc:Dragon's Lair --type:Horde4
 !loot --show --type:Indiv2 --recip:Pip the Pickpocket --incl:Love Letter to Bryon
 !loot --show --type:Horde1 --mod:more-mundane --whisper
-!loot --show --incl:King's Footlocker --type:Horde3 --mod:more-coins,more-magic --test
+!loot --show --incl:King's Footlocker --type:Horde3 --mod:dbl-coins,more-magic --test
 ```
 
 ## Saved Loot
