@@ -189,8 +189,8 @@ The Magic & Mundane Items tables use a built-in replacement syntax that allows r
 * **%%dragon_types%%** will return a random dragon type, such as Black, Copper, or Red.
 * **%%swords%%** will return a random sword type, such as Shortsword, Longsword, or Greatsword.
 * **%%ammo%%** will return Arrow, Crossbow Bolt, Sling Bullet, or Blowgun Needle.
-* **%%leather_armor%%** will return all armor types made with little to no metal, such as Leather Armor, Hide Armor, or Padded Armor.
-* **%%metal_armor%%** will return all armor types made primarily with metal, such as Breastplate, Chain Mail, or Plate Armor.
+* **%%leather_armor%%** will return all armor types that provide non-metallic protection, such as Leather Armor, Hide Armor, or Padded Armor.
+* **%%metal_armor%%** will return all armor types that provide protection with metal, such as Breastplate, Chain Mail, or Plate Armor.
 
 Examples:
 
