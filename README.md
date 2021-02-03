@@ -148,7 +148,7 @@ If you had whispered the loot through the `--show` command, the Treasure Collect
 ## Exporting & Importing
 To provide customization options, export and import options are provided. You must first export data into handouts if you wish to add, remove, or modify items in the database. This will give you the proper format for your additional items and provides handouts with the proper titles that the import function will look for.
 
-The required `--tables` parameter for the `--export` command is a comma delimited list. The options are *Gems, Art, Table A, Table B, Table C, Table D, Table E, Table F, Table G, Table H, Table I, Mundane*, and *Spells*. If you wish to add/modify the Mundane Items list, for example, you would export that table with `!loot --export --tables:Mundane`.
+The required `--tables` parameter for the `--export` command is a comma delimited list. The options are *Gems, Art, Table A, Table B, Table C, Table D, Table E, Table F, Table G, Table H, Table I, Mundane*, and *Spells*. (Tables A through I correspond to the treasure tables in the DMG and each contain various Magic Items.) If you wish to add/modify the Mundane Items list, for example, you would export that table with `!loot --export --tables:Mundane`.
 
 **Note:** For new installations, you _must_ run [`--setup`](#initial-setup) before exporting.
 
