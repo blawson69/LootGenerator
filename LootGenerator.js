@@ -15,10 +15,10 @@ var LootGenerator = LootGenerator || (function () {
 
     //---- INFO ----//
 
-    var version = '4.0',
+    var version = '4.0.1',
     debugMode = false,
     styles = {
-        box:  'background-color: #fff; border: 1px solid #000; padding: 8px 10px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
+        box:  'background-color: #fff; border: 1px solid #000; padding: 8px 10px; border-radius: 6px;',
         title: 'padding: 0 0 10px 0; color: #591209; font-size: 1.5em; font-weight: bold; font-variant: small-caps; font-family: "Times New Roman",Times,serif;',
         subtitle: 'margin-top: -4px; padding-bottom: 4px; color: #666; font-size: 1.125em; font-variant: small-caps;',
         button: 'background-color: #000; border-width: 0px; border-radius: 5px; padding: 5px 8px; color: #fff; text-align: center;',
@@ -38,29 +38,24 @@ var LootGenerator = LootGenerator || (function () {
             state['LootGenerator'] = state['LootGenerator'] || {};
             if (typeof state['LootGenerator'].defaults == 'undefined') state['LootGenerator'].defaults = {coins: 'show-coins', gems: 'show-gems', art: 'show-art', mundane: 'show-mundane', magic: 'show-magic'};
             if (typeof state['LootGenerator'].loot == 'undefined') state['LootGenerator'].loot = [];
-            if (typeof state['LootGenerator'].sheet == 'undefined') state['LootGenerator'].sheet = 'Unknown';
+            if (typeof state['LootGenerator'].sheet == 'undefined') state['LootGenerator'].sheet = detectSheet();
             if (typeof state['LootGenerator'].hideInfo == 'undefined') state['LootGenerator'].hideInfo = true;
-            adminDialog('Build Database', 'This is your first time using LootGenerator, so you must build the default treasure database. This must be done before any customization can occur. '
+        }
+
+        if (typeof state['LootGenerator'].mundane == 'undefined') {
+            adminDialog('Build Database', 'This is your first time using LootGenerator, so you must build the default treasure database. This must be done before any loot can be generated. '
             + '<br><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --setup --reset">Run Setup</a></div>');
         }
 
         state['LootGenerator'].loot = _.reject(state['LootGenerator'].loot, function (x) { return x.coins == '' && _.size(x.treasure) == 0; });
         commandUnbestowedList(true);
 
-        if (state['LootGenerator'].sheet == 'Unknown') {
-            var message, sheet = detectSheet();
-            if (sheet == 'Unknown') {
-                message = 'LootGenerator was unable to detect the character sheet for your game! You must be using either the 5e Shaped Sheet or the 5th Edition OGL Sheet. Please indicate which sheet you are using.';
-                message += '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --config --sheet|?{Choose Sheet|5e Shaped|5th Edition OGL}">SET SHEET</a></div>';
-                adminDialog('Configuration Notice', message);
-            } else {
-                state['LootGenerator'].sheet = sheet;
-            }
-        }
-
-        if (typeof state['LootGenerator'].mundane.swords != 'undefined' && !_.find(state['LootGenerator'].mundane.swords, function (x) {return x.name == 'Rapier';})) {
+        log('Running LootGenerator for a ' + state['LootGenerator'].sheet + ' game.');
+        if (typeof state['LootGenerator'].mundane != 'undefined' && typeof state['LootGenerator'].mundane.swords != 'undefined' && !_.find(state['LootGenerator'].mundane.swords, function (x) {return x.name == 'Rapier';})) {
             adminDialog('⚠️ Database Warning', 'You just upgraded LootGenerator. Congratulations! But before you use the new version, you <b>must reset</b> the database! View the <a style="' + styles.textButton + '" href="https://github.com/blawson69/LootGenerator">documentation</a> for complete instructions.');
         }
+        /*
+        */
 
         log('--> LootGenerator v' + version + ' <-- Initialized');
 		if (debugMode) {
@@ -1076,13 +1071,26 @@ var LootGenerator = LootGenerator || (function () {
         });
 
         if (typeof state['LootGenerator'].sheet == 'undefined' || state['LootGenerator'].sheet == 'Unknown') {
-            var gm_message = '<p style=\'' + styles.alert + '\'>⚠️ Unknown character sheet!</p>';
-            gm_message += '<p>LootGenerator was unable to detect the character sheet for your game. You must be using either the 5e Shaped Sheet or the 5th Edition OGL Sheet. Please tell LootGenerator what character sheet is in use before you can continue using the script.</p><br>';
+            var gm_message = '<p style=\'' + styles.title + ' color: #C91010;\'>⚠️ Sheet Error</p>';
+            gm_message += 'LootGenerator was unable to detect the character sheet for your game. You must be using either the 5e Shaped Sheet or the 5th Edition OGL Sheet. Please tell LootGenerator what character sheet is in use before you can continue using the script.';
             gm_message += 'See the <a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/LootGenerator" target="_blank">documentation</a> for more details.'
             + '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --config --sheet|?{Choose Sheet|5e Shaped|5th Edition OGL}">SET SHEET</a></div>';
-            adminDialog('Error', gm_message);
+            adminDialog('', gm_message);
+
+        } else if (detectSheet() != state['LootGenerator'].sheet) {
+            var gm_message = '<p style=\'' + styles.title + ' color: #C91010;\'>⚠️ Sheet Error</p>';
+            gm_message += 'You are using the <b>' + state['LootGenerator'].sheet + '</b> sheet but PurseStrings has detected your sheet is the <b>' + detectSheet() + '</b> sheet.';
+            gm_message += '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --config --sheet|' + detectSheet() + '">FIX SHEET</a></div>';
+            adminDialog('', gm_message);
+
+        } else if (typeof state['LootGenerator'].mundane == 'undefined') {
+            var gm_message = '<div style=\'' + styles.title + ' color: #C91010;\'>⚠️ Database Error</div>';
+            gm_message += 'You still haven\'t setup the default treasure database. This <b>must</b> be done before any loot can be generated.';
+            gm_message += '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!loot --setup --reset">Run Setup</a></div>';
+            adminDialog('', gm_message);
         } else {
             var message = '';
+
             if (_.size(state['LootGenerator'].loot) > 0) {
                 message += '<div style=\'' + styles.title + '\'>Unbestowed Loot</div>You have ' + _.size(state['LootGenerator'].loot) + ' Treasure ' + (_.size(state['LootGenerator'].loot) == 1 ? 'Collection' : 'Collections') + ' with undistributed loot remaining.';
                 message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --list">Show List</a></div><hr style=\'' + styles.hr + '\'>';
@@ -1518,11 +1526,10 @@ var LootGenerator = LootGenerator || (function () {
     },
 
     detectSheet = function () {
-        var sheet = 'Unknown', char = findObjs({type: 'character'})[0];
+        var sheet = '5th Edition OGL', char = findObjs({type: 'character'})[0];
         if (char) {
             var charAttrs = findObjs({type: 'attribute', characterid: char.get('id')}, {caseInsensitive: true});
-            if (_.find(charAttrs, function (x) { return x.get('name') == 'character_sheet' && x.get('current').search('Shaped') != -1; })) sheet = '5e Shaped';
-            if (_.find(charAttrs, function (x) { return x.get('name').search('mancer') != -1; })) sheet = '5th Edition OGL';
+            if (_.find(charAttrs, function (x) { return x.get('name') == 'character_sheet' && x.get('current').startsWith('Shaped'); })) sheet = '5e Shaped';
         }
         return sheet;
     },
