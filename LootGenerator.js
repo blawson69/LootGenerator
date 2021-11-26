@@ -50,7 +50,6 @@ var LootGenerator = LootGenerator || (function () {
         state['LootGenerator'].loot = _.reject(state['LootGenerator'].loot, function (x) { return x.coins == '' && _.size(x.treasure) == 0; });
         commandUnbestowedList(true);
 
-        log('Running LootGenerator for a ' + state['LootGenerator'].sheet + ' game.');
         if (typeof state['LootGenerator'].mundane != 'undefined' && typeof state['LootGenerator'].mundane.swords != 'undefined' && !_.find(state['LootGenerator'].mundane.swords, function (x) {return x.name == 'Rapier';})) {
             adminDialog('⚠️ Database Warning', 'You just upgraded LootGenerator. Congratulations! But before you use the new version, you <b>must reset</b> the database! View the <a style="' + styles.textButton + '" href="https://github.com/blawson69/LootGenerator">documentation</a> for complete instructions.');
         }
